@@ -1,4 +1,4 @@
-// Componente raíz de la aplicaciOn.
+// Componente raíz de la aplicación.
 // Configura los proveedores globales (React Query, tooltips, notificaciones, autenticación)
 // y define las rutas principales de la aplicación usando React Router.
 
