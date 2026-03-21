@@ -1,0 +1,5 @@
+
+ALTER TABLE public.recipes 
+  ADD COLUMN IF NOT EXISTS country TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS category TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS calories_per_ingredient JSONB DEFAULT '{}';

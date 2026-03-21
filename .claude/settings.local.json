@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(echo \"EXIT_CODE: $?\")",
+      "Bash(find 'C:/Users/Raul/Desktop/proyecto final/smart-recipe-ai' -type f \\\\\\(-name *.json -o -name *.js -o -name *.ts -o -name *.tsx -o -name *.jsx -o -name *.py -o -name *.yaml -o -name *.yml -o -name *.xml \\\\\\))",
+      "Bash(find 'C:/Users/Raul/Desktop/proyecto final/smart-recipe-ai' -maxdepth 3 -type d -not -path */node_modules* -not -path */.git*)",
+      "Bash(supabase --version)",
+      "Bash(npx supabase:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(netstat -ano)",
+      "Bash(xargs grep:*)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d[''''candidates''''][0][''''content''''][''''parts''''][0][''''text'''']\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); m=d[''''meals''''][0]; print\\(m[''''strMeal''''], m[''''strMealThumb'''']\\)\")"
+    ]
+  }
+}
