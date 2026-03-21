@@ -2,6 +2,7 @@
 // Muestra la información resumida de una receta: imagen, calorías, país, título,
 // categoría, tiempo, porciones y macronutrientes. Incluye botón de favorito.
 
+import { memo } from "react";
 import { Clock, Flame, Users, Heart, MapPin, Tag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -116,4 +117,4 @@ const NutrientPill = ({ label, value, color }: { label: string; value: string; c
   </div>
 );
 
-export default RecipeCard;
+export default memo(RecipeCard);

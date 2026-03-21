@@ -5,6 +5,10 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Camera, Upload, Image as ImageIcon } from "lucide-react";
+import { toast } from "sonner";
+
+// Límite de tamaño de archivo: 10 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 // Props del componente
 interface ImageUploadProps {
@@ -37,6 +41,16 @@ const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
    * y llama al callback del padre con el archivo y la URL.
    */
   const handleFile = useCallback((file: File) => {
+    // Valida que el archivo sea una imagen
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten archivos de imagen");
+      return;
+    }
+    // Valida que el archivo no supere el límite de tamaño
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("La imagen no puede superar los 10 MB");
+      return;
+    }
     if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current);
     const url = URL.createObjectURL(file);
     prevUrlRef.current = url;

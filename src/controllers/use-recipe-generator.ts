@@ -3,7 +3,7 @@
 // genera recetas con IA, las guarda en la base de datos y les asigna imágenes generadas.
 // Aplica el límite de recetas según el plan del usuario (1 para free, 3 para VIP).
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -35,6 +35,8 @@ export function useRecipeGenerator() {
   const [country, setCountry] = useState("all");
   const [category, setCategory] = useState("all");
   const { user, profile } = useAuth();
+  // Contador que identifica cada generación para evitar actualizar estado obsoleto (race condition)
+  const generationIdRef = useRef(0);
 
   // Los usuarios VIP pueden ver hasta 3 recetas; los gratuitos solo 1
   const maxRecipes = profile?.plan === "vip" ? 3 : 1;
@@ -49,6 +51,8 @@ export function useRecipeGenerator() {
    * 5. Actualiza las imágenes en el estado y en la base de datos.
    */
   const handleGenerate = async () => {
+    // Incrementa el ID de generación para invalidar cualquier generación anterior en curso
+    const generationId = ++generationIdRef.current;
     setIsLoading(true);
     try {
       // Prepara los filtros, ignorando el valor "all" (sin filtro)
@@ -92,6 +96,9 @@ export function useRecipeGenerator() {
         return { idx, image };
       });
       const images = await Promise.all(imagePromises);
+
+      // Si el usuario lanzó una nueva generación mientras esta estaba en curso, se descarta
+      if (generationId !== generationIdRef.current) return;
 
       // Actualiza el estado con las imágenes generadas
       setRecipes((prev) => {

@@ -66,5 +66,5 @@ export async function verifyAndUpdatePassword(email: string, currentPassword: st
 
   // Si la verificación fue exitosa, actualiza la contraseña
   const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-  if (updateError) throw updateError;
+  if (updateError) throw new Error("Error al actualizar la contraseña. Por favor, inténtalo de nuevo.");
 }
