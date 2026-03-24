@@ -46,6 +46,9 @@ const Profile = () => {
     saving,
     handleSave,
     handlePlanChange,
+    upgradeDialogOpen,
+    handleConfirmUpgrade,
+    handleCancelUpgrade,
     downgradeDialogOpen,
     excessFavoritesCount,
     handleConfirmDowngrade,
@@ -277,6 +280,40 @@ const Profile = () => {
           })}
         </div>
       </Card>
+
+      {/* Diálogo de confirmación al hacer upgrade gratuito → VIP */}
+      <AlertDialog open={upgradeDialogOpen} onOpenChange={(open) => { if (!open) handleCancelUpgrade(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-accent" /> Activar plan VIP
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  El plan VIP tiene un coste de <span className="font-semibold text-foreground">5,00 €/mes</span>.
+                  Al confirmar, aceptas que se realizará un cargo mensual de esta cantidad.
+                </p>
+                <ul className="space-y-1 border rounded-lg p-3 bg-accent/5 border-accent/20 text-foreground">
+                  <li className="flex items-center gap-2"><Crown className="w-3.5 h-3.5 text-accent" /> 1 a 3 recetas simultáneas</li>
+                  <li className="flex items-center gap-2"><Crown className="w-3.5 h-3.5 text-accent" /> Favoritos ilimitados</li>
+                  <li className="flex items-center gap-2"><Crown className="w-3.5 h-3.5 text-accent" /> 500 créditos iniciales</li>
+                  <li className="flex items-center gap-2"><Crown className="w-3.5 h-3.5 text-accent" /> 15% descuento en recargas</li>
+                </ul>
+                <p className="text-xs">
+                  Puedes volver al plan gratuito en cualquier momento desde tu perfil.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelUpgrade}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmUpgrade} className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
+              Activar VIP — 5,00 €/mes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Diálogo de confirmación al hacer downgrade VIP → gratuito con más de 10 favoritos */}
       <AlertDialog open={downgradeDialogOpen} onOpenChange={(open) => { if (!open) handleCancelDowngrade(); }}>

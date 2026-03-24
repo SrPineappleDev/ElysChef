@@ -28,6 +28,9 @@ export function useProfileController() {
   const [apellidos, setApellidos] = useState(profile?.apellidos || "");
   const [saving, setSaving] = useState(false);
 
+  // Estado para el diálogo de confirmación de upgrade gratuito → VIP
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+
   // Estado para el diálogo de confirmación de downgrade VIP → gratuito
   const [downgradeDialogOpen, setDowngradeDialogOpen] = useState(false);
   const [excessFavoritesCount, setExcessFavoritesCount] = useState(0);
@@ -71,6 +74,12 @@ export function useProfileController() {
   const handlePlanChange = async (newPlan: "free" | "vip") => {
     if (!profile || newPlan === profile.plan) return;
 
+    // Upgrade gratuito → VIP: mostrar aviso de suscripción mensual de 5 €
+    if (newPlan === "vip" && profile.plan === "free") {
+      setUpgradeDialogOpen(true);
+      return;
+    }
+
     // Downgrade VIP → gratuito: comprobar si supera el límite de favoritos
     if (newPlan === "free" && profile.plan === "vip") {
       const favorites = await favoritesService.fetchUserFavorites(profile.id);
@@ -89,6 +98,29 @@ export function useProfileController() {
     } catch {
       toast.error("Error al cambiar el plan");
     }
+  };
+
+  /**
+   * Confirma el upgrade a VIP tras aceptar el cargo mensual de 5 €.
+   */
+  const handleConfirmUpgrade = async () => {
+    if (!profile) return;
+    setUpgradeDialogOpen(false);
+    try {
+      await profileService.updatePlan(profile.id, "vip");
+      await profileService.resetCreditsForPlan(profile.id, "vip");
+      toast.success("Plan cambiado a VIP");
+      await refreshProfile();
+    } catch {
+      toast.error("Error al cambiar el plan");
+    }
+  };
+
+  /**
+   * Cancela el upgrade a VIP y cierra el diálogo.
+   */
+  const handleCancelUpgrade = () => {
+    setUpgradeDialogOpen(false);
   };
 
   /**
@@ -199,6 +231,9 @@ export function useProfileController() {
     handlePlanChange,
     downgradeDialogOpen,
     excessFavoritesCount,
+    upgradeDialogOpen,
+    handleConfirmUpgrade,
+    handleCancelUpgrade,
     handleConfirmDowngrade,
     handleCancelDowngrade,
     creditPackage,
