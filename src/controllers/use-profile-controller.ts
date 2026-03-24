@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import * as profileService from "@/models/profile-service";
 import * as authService from "@/models/auth-service";
+import * as favoritesService from "@/models/favorites-service";
 import { traducirErrorAuth } from "@/lib/traducir-error-auth";
 
 /**
@@ -26,6 +27,10 @@ export function useProfileController() {
   const [nombre, setNombre] = useState(profile?.nombre || "");
   const [apellidos, setApellidos] = useState(profile?.apellidos || "");
   const [saving, setSaving] = useState(false);
+
+  // Estado para el diálogo de confirmación de downgrade VIP → gratuito
+  const [downgradeDialogOpen, setDowngradeDialogOpen] = useState(false);
+  const [excessFavoritesCount, setExcessFavoritesCount] = useState(0);
 
   // Estado del formulario de cambio de contraseña
   const [pwOpen, setPwOpen] = useState(false);        // Controla si el formulario está visible
@@ -56,10 +61,23 @@ export function useProfileController() {
   /**
    * Cambia el plan del usuario (free o vip).
    * No hace nada si el nuevo plan es igual al actual.
+   * Si el usuario hace downgrade de VIP a gratuito y tiene más de 10 favoritos,
+   * abre un diálogo de confirmación antes de proceder.
    * Muestra un toast de éxito o error y recarga el perfil.
    */
   const handlePlanChange = async (newPlan: "free" | "vip") => {
     if (!profile || newPlan === profile.plan) return;
+
+    // Downgrade VIP → gratuito: comprobar si supera el límite de favoritos
+    if (newPlan === "free" && profile.plan === "vip") {
+      const favorites = await favoritesService.fetchUserFavorites(profile.id);
+      if (favorites.length > 10) {
+        setExcessFavoritesCount(favorites.length - 10);
+        setDowngradeDialogOpen(true);
+        return;
+      }
+    }
+
     try {
       await profileService.updatePlan(profile.id, newPlan);
       toast.success(`Plan cambiado a ${newPlan === "vip" ? "VIP" : "Gratuito"}`);
@@ -67,6 +85,31 @@ export function useProfileController() {
     } catch {
       toast.error("Error al cambiar el plan");
     }
+  };
+
+  /**
+   * Confirma el downgrade a gratuito: elimina los favoritos que superen el límite de 10
+   * (manteniendo los primeros 10 por fecha de creación) y luego cambia el plan.
+   */
+  const handleConfirmDowngrade = async () => {
+    if (!profile) return;
+    setDowngradeDialogOpen(false);
+    try {
+      await favoritesService.trimFavoritesToLimit(profile.id, 10);
+      await profileService.updatePlan(profile.id, "free");
+      toast.success("Plan cambiado a Gratuito");
+      await refreshProfile();
+    } catch {
+      toast.error("Error al cambiar el plan");
+    }
+  };
+
+  /**
+   * Cancela el downgrade y cierra el diálogo de confirmación.
+   */
+  const handleCancelDowngrade = () => {
+    setDowngradeDialogOpen(false);
+    setExcessFavoritesCount(0);
   };
 
   /**
@@ -120,6 +163,10 @@ export function useProfileController() {
     saving,
     handleSave,
     handlePlanChange,
+    downgradeDialogOpen,
+    excessFavoritesCount,
+    handleConfirmDowngrade,
+    handleCancelDowngrade,
     pwOpen, setPwOpen,
     pwLoading,
     currentPassword, setCurrentPassword,

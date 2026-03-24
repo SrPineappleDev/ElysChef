@@ -8,6 +8,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useProfileController } from "@/controllers/use-profile-controller";
 
 /**
@@ -25,6 +35,10 @@ const Profile = () => {
     saving,
     handleSave,
     handlePlanChange,
+    downgradeDialogOpen,
+    excessFavoritesCount,
+    handleConfirmDowngrade,
+    handleCancelDowngrade,
     pwOpen, setPwOpen,
     pwLoading,
     currentPassword, setCurrentPassword,
@@ -193,6 +207,28 @@ const Profile = () => {
           </button>
         </div>
       </Card>
+
+      {/* Diálogo de confirmación al hacer downgrade VIP → gratuito con más de 10 favoritos */}
+      <AlertDialog open={downgradeDialogOpen} onOpenChange={(open) => { if (!open) handleCancelDowngrade(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Cambiar al plan Gratuito?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tienes más de 10 recetas guardadas en favoritos. Si cambias al plan gratuito,
+              perderás {excessFavoritesCount === 1 ? "la última receta guardada" : `las últimas ${excessFavoritesCount} recetas guardadas`} y
+              te quedarás solo con las 10 primeras que marcaste como favoritas.
+              <br /><br />
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDowngrade}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDowngrade} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Confirmar cambio
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

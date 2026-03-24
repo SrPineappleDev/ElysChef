@@ -73,3 +73,23 @@ export async function removeFavorite(userId: string, recipeId: string): Promise<
     .eq("recipe_id", recipeId);
   if (error) throw error;
 }
+
+/**
+ * Recorta los favoritos del usuario al límite indicado, eliminando los más recientes.
+ * Mantiene los primeros `limit` favoritos ordenados por fecha de creación (los más antiguos).
+ * Se usa al hacer downgrade de VIP a gratuito cuando el usuario supera el límite de 10.
+ */
+export async function trimFavoritesToLimit(userId: string, limit: number): Promise<void> {
+  const { data } = await supabase
+    .from("favorites")
+    .select("recipe_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (!data || data.length <= limit) return;
+
+  const toRemove = data.slice(limit).map((f: any) => f.recipe_id);
+  for (const recipeId of toRemove) {
+    await removeFavorite(userId, recipeId);
+  }
+}
