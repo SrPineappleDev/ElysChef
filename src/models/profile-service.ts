@@ -49,3 +49,44 @@ export async function updatePlan(profileId: string, plan: "free" | "vip"): Promi
     .eq("id", profileId);
   if (error) throw error;
 }
+
+/**
+ * Resta créditos al perfil del usuario de forma segura.
+ * Solo actualiza si el usuario tiene suficientes créditos (credits >= amount).
+ * Lanza un error si no hay suficientes créditos o si la operación falla.
+ */
+export async function deductCredits(profileId: string, amount: number, currentCredits: number): Promise<void> {
+  if (currentCredits < amount) throw new Error("Créditos insuficientes");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ credits: currentCredits - amount })
+    .eq("id", profileId)
+    .gte("credits", amount);
+  if (error) throw error;
+}
+
+/**
+ * Añade créditos al saldo actual del usuario.
+ * Lanza un error si la operación en la base de datos falla.
+ */
+export async function addCredits(profileId: string, amount: number, currentCredits: number): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ credits: currentCredits + amount })
+    .eq("id", profileId);
+  if (error) throw error;
+}
+
+/**
+ * Resetea los créditos del usuario al valor inicial según su nuevo plan.
+ * free → 200 créditos, vip → 500 créditos.
+ * Se llama al cambiar de plan.
+ */
+export async function resetCreditsForPlan(profileId: string, plan: "free" | "vip"): Promise<void> {
+  const credits = plan === "vip" ? 500 : 200;
+  const { error } = await supabase
+    .from("profiles")
+    .update({ credits })
+    .eq("id", profileId);
+  if (error) throw error;
+}

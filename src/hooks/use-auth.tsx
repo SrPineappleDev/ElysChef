@@ -13,6 +13,7 @@ export interface Profile {
   apellidos: string;
   email: string;
   plan: "free" | "vip";
+  credits: number;
 }
 
 // Tipos de los valores que expone el contexto de autenticación

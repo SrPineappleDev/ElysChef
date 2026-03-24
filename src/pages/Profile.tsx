@@ -1,9 +1,9 @@
 // Página de perfil de usuario.
 // Permite al usuario ver y editar sus datos personales (nombre, apellidos),
-// cambiar su contraseña y gestionar su plan (gratuito o VIP).
+// cambiar su contraseña, gestionar su plan (gratuito o VIP) y recargar créditos.
 // Delega toda la lógica al controlador useProfileController.
 
-import { User, Mail, Crown, Eye, EyeOff, Zap, Save, KeyRound, Lock } from "lucide-react";
+import { User, Mail, Crown, Eye, EyeOff, Zap, Save, KeyRound, Lock, Coins } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,13 +18,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import CreditsDisplay from "@/components/CreditsDisplay";
 import { useProfileController } from "@/controllers/use-profile-controller";
 
+// Paquetes de créditos disponibles con precio base
+const CREDIT_PACKAGES = [
+  { amount: 50,  label: "Paquete S", price: 0.99 },
+  { amount: 150, label: "Paquete M", price: 2.49 },
+  { amount: 500, label: "Paquete L", price: 5.99 },
+];
+
+const DISCOUNT_VIP = 0.15; // 15% de descuento para VIP
+
 /**
- * Página de perfil dividida en tres tarjetas:
+ * Página de perfil dividida en cuatro tarjetas:
  * 1. Datos personales (nombre, apellidos, email de solo lectura).
  * 2. Cambio de contraseña (formulario desplegable).
  * 3. Gestión del plan (gratuito / VIP).
+ * 4. Recarga de créditos (paquetes S / M / L con descuento para VIP).
  */
 const Profile = () => {
   // Obtiene el estado y los manejadores del controlador de perfil
@@ -39,6 +50,10 @@ const Profile = () => {
     excessFavoritesCount,
     handleConfirmDowngrade,
     handleCancelDowngrade,
+    creditPackage,
+    handleSelectCreditPackage,
+    handleConfirmAddCredits,
+    handleCancelAddCredits,
     pwOpen, setPwOpen,
     pwLoading,
     currentPassword, setCurrentPassword,
@@ -55,6 +70,8 @@ const Profile = () => {
 
   // No renderiza nada mientras el perfil no está disponible
   if (!profile) return null;
+
+  const isVip = profile.plan === "vip";
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl animate-fade-in">
@@ -163,8 +180,11 @@ const Profile = () => {
       </Card>
 
       {/* Tarjeta de selección de plan */}
-      <Card className="p-6 space-y-5 bg-card border-border">
-        <h2 className="font-display font-semibold text-lg">Tu plan actual</h2>
+      <Card className="p-6 space-y-5 bg-card border-border mb-6">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="font-display font-semibold text-lg">Tu plan actual</h2>
+          <CreditsDisplay credits={profile.credits} />
+        </div>
 
         {/* Dos opciones de plan en tarjetas clicables; el plan activo se resalta */}
         <div className="grid sm:grid-cols-2 gap-4">
@@ -175,7 +195,6 @@ const Profile = () => {
               profile.plan === "free" ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
             }`}
           >
-            {/* Badge "Activo" visible solo si este es el plan actual */}
             {profile.plan === "free" && (
               <span className="absolute top-3 right-3 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-semibold">Activo</span>
             )}
@@ -184,6 +203,7 @@ const Profile = () => {
             <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
               <li>• 1 receta a la vez</li>
               <li>• Hasta 10 favoritos</li>
+              <li>• 200 créditos iniciales</li>
             </ul>
           </button>
 
@@ -194,17 +214,67 @@ const Profile = () => {
               profile.plan === "vip" ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/30"
             }`}
           >
-            {/* Badge "Activo" visible solo si este es el plan actual */}
             {profile.plan === "vip" && (
               <span className="absolute top-3 right-3 text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full font-semibold">Activo</span>
             )}
             <Crown className="w-6 h-6 text-accent mb-2" />
             <h3 className="font-display font-bold text-foreground">VIP</h3>
             <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-              <li>• 3 recetas simultáneas</li>
+              <li>• 1 a 3 recetas simultáneas</li>
               <li>• Favoritos ilimitados</li>
+              <li>• 500 créditos iniciales</li>
+              <li>• 15% dto. en recargas</li>
             </ul>
           </button>
+        </div>
+
+        {/* Referencia de costes */}
+        <p className="text-xs text-muted-foreground">
+          Generar recetas: <span className="font-semibold">50 créditos</span> · Analizar imagen: <span className="font-semibold">25 créditos</span>
+        </p>
+      </Card>
+
+      {/* Tarjeta de recarga de créditos */}
+      <Card className="p-6 space-y-5 bg-card border-border">
+        <div className="flex items-center gap-2">
+          <Coins className="w-5 h-5 text-primary" />
+          <h2 className="font-display font-semibold text-lg">Recargar créditos</h2>
+          {isVip && (
+            <span className="text-xs bg-green-500/10 text-green-600 border border-green-500/20 px-2 py-0.5 rounded-full font-semibold">
+              15% descuento VIP
+            </span>
+          )}
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-4">
+          {CREDIT_PACKAGES.map((pkg) => {
+            const discountedPrice = isVip ? pkg.price * (1 - DISCOUNT_VIP) : null;
+            const displayPrice = discountedPrice ?? pkg.price;
+
+            return (
+              <button
+                key={pkg.amount}
+                onClick={() => handleSelectCreditPackage(pkg.amount, `${displayPrice.toFixed(2)} €`)}
+                className="relative rounded-xl border-2 border-border hover:border-primary/50 p-5 text-left transition-all group"
+              >
+                <p className="font-display font-bold text-2xl text-foreground group-hover:text-primary transition-colors">
+                  +{pkg.amount}
+                </p>
+                <p className="text-sm text-muted-foreground mb-3">créditos</p>
+                <p className="text-xs text-muted-foreground font-semibold">{pkg.label}</p>
+                <div className="mt-2">
+                  {isVip ? (
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <span className="text-sm line-through text-muted-foreground">{pkg.price.toFixed(2)} €</span>
+                      <span className="text-base font-bold text-green-600">{discountedPrice!.toFixed(2)} €</span>
+                    </div>
+                  ) : (
+                    <span className="text-base font-bold text-foreground">{pkg.price.toFixed(2)} €</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </Card>
 
@@ -218,13 +288,35 @@ const Profile = () => {
               perderás {excessFavoritesCount === 1 ? "la última receta guardada" : `las últimas ${excessFavoritesCount} recetas guardadas`} y
               te quedarás solo con las 10 primeras que marcaste como favoritas.
               <br /><br />
-              Esta acción no se puede deshacer.
+              Además, tus créditos se resetearán a 200. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelDowngrade}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDowngrade} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Confirmar cambio
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de confirmación de compra de créditos */}
+      <AlertDialog open={!!creditPackage} onOpenChange={(open) => { if (!open) handleCancelAddCredits(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar recarga de créditos</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a añadir <span className="font-semibold text-foreground">+{creditPackage?.amount} créditos</span> a tu saldo por{" "}
+              <span className="font-semibold text-foreground">{creditPackage?.price}</span>.
+              {isVip && <span className="text-green-600 font-semibold"> (precio con descuento VIP)</span>}
+              <br /><br />
+              Tu nuevo saldo será de <span className="font-semibold text-foreground">{(profile.credits + (creditPackage?.amount ?? 0))} créditos</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAddCredits}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAddCredits} className="gradient-hero text-primary-foreground">
+              Confirmar compra
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -32,6 +32,9 @@ export function useProfileController() {
   const [downgradeDialogOpen, setDowngradeDialogOpen] = useState(false);
   const [excessFavoritesCount, setExcessFavoritesCount] = useState(0);
 
+  // Estado para el diálogo de confirmación de compra de créditos
+  const [creditPackage, setCreditPackage] = useState<{ amount: number; price: string } | null>(null);
+
   // Estado del formulario de cambio de contraseña
   const [pwOpen, setPwOpen] = useState(false);        // Controla si el formulario está visible
   const [pwLoading, setPwLoading] = useState(false);
@@ -80,6 +83,7 @@ export function useProfileController() {
 
     try {
       await profileService.updatePlan(profile.id, newPlan);
+      await profileService.resetCreditsForPlan(profile.id, newPlan);
       toast.success(`Plan cambiado a ${newPlan === "vip" ? "VIP" : "Gratuito"}`);
       await refreshProfile();
     } catch {
@@ -97,6 +101,7 @@ export function useProfileController() {
     try {
       await favoritesService.trimFavoritesToLimit(profile.id, 10);
       await profileService.updatePlan(profile.id, "free");
+      await profileService.resetCreditsForPlan(profile.id, "free");
       toast.success("Plan cambiado a Gratuito");
       await refreshProfile();
     } catch {
@@ -147,6 +152,35 @@ export function useProfileController() {
   };
 
   /**
+   * Abre el diálogo de confirmación para comprar un paquete de créditos.
+   */
+  const handleSelectCreditPackage = (amount: number, price: string) => {
+    setCreditPackage({ amount, price });
+  };
+
+  /**
+   * Confirma la compra del paquete de créditos seleccionado y suma al saldo actual.
+   */
+  const handleConfirmAddCredits = async () => {
+    if (!profile || !creditPackage) return;
+    setCreditPackage(null);
+    try {
+      await profileService.addCredits(profile.id, creditPackage.amount, profile.credits);
+      toast.success(`+${creditPackage.amount} créditos añadidos a tu saldo`);
+      await refreshProfile();
+    } catch {
+      toast.error("Error al añadir créditos");
+    }
+  };
+
+  /**
+   * Cancela la compra de créditos y cierra el diálogo.
+   */
+  const handleCancelAddCredits = () => {
+    setCreditPackage(null);
+  };
+
+  /**
    * Cancela el cambio de contraseña y limpia todos los campos del formulario.
    */
   const handleCancelPwChange = () => {
@@ -167,6 +201,10 @@ export function useProfileController() {
     excessFavoritesCount,
     handleConfirmDowngrade,
     handleCancelDowngrade,
+    creditPackage,
+    handleSelectCreditPackage,
+    handleConfirmAddCredits,
+    handleCancelAddCredits,
     pwOpen, setPwOpen,
     pwLoading,
     currentPassword, setCurrentPassword,

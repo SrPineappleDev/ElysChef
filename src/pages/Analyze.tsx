@@ -9,6 +9,7 @@ import ImageUpload from "@/components/ImageUpload";
 import RecipeCard from "@/components/RecipeCard";
 import RecipeDetail from "@/components/RecipeDetail";
 import RecipeFilters from "@/components/RecipeFilters";
+import CreditsDisplay from "@/components/CreditsDisplay";
 import { useFavorites } from "@/controllers/use-favorites-controller";
 import { useRecipeGenerator } from "@/controllers/use-recipe-generator";
 
@@ -27,6 +28,7 @@ const Analyze = () => {
     country, setCountry,
     category, setCategory,
     profile,
+    recipeCount, setRecipeCount,
     handleGenerate, handleImageSelected,
   } = useRecipeGenerator();
 
@@ -56,13 +58,19 @@ const Analyze = () => {
         </h1>
         <p className="text-muted-foreground mt-2">
           Sube una imagen o escribe los ingredientes que tienes disponibles.
-          {/* Muestra el plan activo y el límite de recetas del usuario */}
-          {profile && (
-            <span className="block text-xs mt-1">
-              Plan {profile.plan === "vip" ? "VIP — hasta 3 recetas" : "Gratuito — 1 receta"}
-            </span>
-          )}
         </p>
+        {/* Muestra el plan activo y el saldo de créditos */}
+        {profile && (
+          <div className="flex items-center justify-center gap-3 mt-3 flex-wrap">
+            <span className="text-xs text-muted-foreground">
+              Plan {profile.plan === "vip" ? "VIP" : "Gratuito"}
+            </span>
+            <CreditsDisplay credits={profile.credits} />
+            <span className="text-xs text-muted-foreground">
+              · Receta: 50 crd · Imagen: 25 crd
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Filtros de país y categoría para refinar las recetas generadas */}
@@ -93,6 +101,9 @@ const Analyze = () => {
             onIngredientsChange={setIngredients}
             onGenerate={handleGenerate}
             isLoading={isLoading}
+            isVip={profile?.plan === "vip"}
+            recipeCount={recipeCount}
+            onRecipeCountChange={setRecipeCount}
           />
         </TabsContent>
 
@@ -120,6 +131,9 @@ const Analyze = () => {
                 onIngredientsChange={setIngredients}
                 onGenerate={handleGenerate}
                 isLoading={isLoading}
+                isVip={profile?.plan === "vip"}
+                recipeCount={recipeCount}
+                onRecipeCountChange={setRecipeCount}
               />
             </div>
           )}

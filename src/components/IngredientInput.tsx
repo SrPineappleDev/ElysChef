@@ -14,13 +14,16 @@ interface IngredientInputProps {
   onIngredientsChange: (ingredients: string[]) => void; // Callback al cambiar la lista
   onGenerate: () => void;                             // Callback para generar recetas
   isLoading?: boolean;                                // True mientras se generan recetas
+  isVip?: boolean;                                    // True si el usuario tiene plan VIP
+  recipeCount?: 1 | 2 | 3;                           // Número de recetas a generar (solo VIP)
+  onRecipeCountChange?: (count: 1 | 2 | 3) => void; // Callback al cambiar el número de recetas
 }
 
 /**
  * Componente con campo de texto, botones de acción y lista de ingredientes seleccionados.
  * Permite añadir con Enter o con el botón "+", y eliminar cada ingrediente con su "x".
  */
-const IngredientInput = ({ ingredients, onIngredientsChange, onGenerate, isLoading }: IngredientInputProps) => {
+const IngredientInput = ({ ingredients, onIngredientsChange, onGenerate, isLoading, isVip, recipeCount, onRecipeCountChange }: IngredientInputProps) => {
   // Valor del campo de texto actual
   const [current, setCurrent] = useState("");
 
@@ -88,6 +91,29 @@ const IngredientInput = ({ ingredients, onIngredientsChange, onGenerate, isLoadi
               </button>
             </Badge>
           ))}
+        </div>
+      )}
+
+      {/* Selector de número de recetas: solo visible para usuarios VIP */}
+      {isVip && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">Número de recetas:</span>
+          <div className="flex gap-1">
+            {([1, 2, 3] as const).map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => onRecipeCountChange?.(n)}
+                className={`w-8 h-8 rounded-lg border text-sm font-semibold transition-colors ${
+                  recipeCount === n
+                    ? "bg-accent text-accent-foreground border-accent"
+                    : "border-border hover:border-accent/50 text-foreground"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
