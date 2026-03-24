@@ -90,10 +90,10 @@ export function useProfileController() {
       }
     }
 
+    // Downgrade VIP → free con ≤10 favoritos: solo cambia el plan, créditos se conservan
     try {
       await profileService.updatePlan(profile.id, newPlan);
-      await profileService.resetCreditsForPlan(profile.id, newPlan);
-      toast.success(`Plan cambiado a ${newPlan === "vip" ? "VIP" : "Gratuito"}`);
+      toast.success("Plan cambiado a Gratuito");
       await refreshProfile();
     } catch {
       toast.error("Error al cambiar el plan");
@@ -108,7 +108,10 @@ export function useProfileController() {
     setUpgradeDialogOpen(false);
     try {
       await profileService.updatePlan(profile.id, "vip");
-      await profileService.resetCreditsForPlan(profile.id, "vip");
+      // Si el usuario tenía menos de 500 créditos, sube a 500; si tenía más, los conserva
+      if (profile.credits < 500) {
+        await profileService.setCredits(profile.id, 500);
+      }
       toast.success("Plan cambiado a VIP");
       await refreshProfile();
     } catch {
@@ -132,8 +135,8 @@ export function useProfileController() {
     setDowngradeDialogOpen(false);
     try {
       await favoritesService.trimFavoritesToLimit(profile.id, 10);
+      // Los créditos se conservan tal cual al hacer downgrade
       await profileService.updatePlan(profile.id, "free");
-      await profileService.resetCreditsForPlan(profile.id, "free");
       toast.success("Plan cambiado a Gratuito");
       await refreshProfile();
     } catch {

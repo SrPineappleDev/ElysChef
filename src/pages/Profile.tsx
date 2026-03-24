@@ -325,7 +325,7 @@ const Profile = () => {
               perderás {excessFavoritesCount === 1 ? "la última receta guardada" : `las últimas ${excessFavoritesCount} recetas guardadas`} y
               te quedarás solo con las 10 primeras que marcaste como favoritas.
               <br /><br />
-              Además, tus créditos se resetearán a 200. Esta acción no se puede deshacer.
+              Tus créditos actuales se conservarán. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

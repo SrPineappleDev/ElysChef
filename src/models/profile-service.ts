@@ -78,12 +78,10 @@ export async function addCredits(profileId: string, amount: number, currentCredi
 }
 
 /**
- * Resetea los créditos del usuario al valor inicial según su nuevo plan.
- * free → 200 créditos, vip → 500 créditos.
- * Se llama al cambiar de plan.
+ * Establece los créditos del usuario a un valor concreto.
+ * Lanza un error si la operación en la base de datos falla.
  */
-export async function resetCreditsForPlan(profileId: string, plan: "free" | "vip"): Promise<void> {
-  const credits = plan === "vip" ? 500 : 200;
+export async function setCredits(profileId: string, credits: number): Promise<void> {
   const { error } = await supabase
     .from("profiles")
     .update({ credits })
