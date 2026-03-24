@@ -1,11 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Fondo circular naranja -->
-  <circle cx="32" cy="32" r="32" fill="#F97316"/>
-  <!-- Gorro de chef blanco -->
-  <path d="M20 42h24v4H20z" fill="white"/>
-  <rect x="20" y="38" width="24" height="5" rx="1" fill="white"/>
-  <path d="M22 38c0-8 4-14 10-14s10 6 10 14H22z" fill="white"/>
-  <ellipse cx="26" cy="26" rx="5" ry="6" fill="white"/>
-  <ellipse cx="38" cy="26" rx="5" ry="6" fill="white"/>
-  <ellipse cx="32" cy="24" rx="6" ry="7" fill="white"/>
+  <!-- Fondo blanco -->
+  <rect width="64" height="64" fill="white"/>
+  <!-- Banda inferior del gorro -->
+  <rect x="13" y="44" width="38" height="9" rx="2" fill="white" stroke="#1a1a1a" stroke-width="2.5"/>
+  <!-- Cuerpo principal del gorro -->
+  <path d="M17 44 C17 44 15 29 23 21 C26 18 29 16 32 16 C35 16 38 18 41 21 C49 29 47 44 47 44 Z" fill="white" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Puff superior izquierdo -->
+  <ellipse cx="24" cy="22" rx="8" ry="9" fill="white" stroke="#1a1a1a" stroke-width="2.5"/>
+  <!-- Puff superior derecho -->
+  <ellipse cx="40" cy="22" rx="8" ry="9" fill="white" stroke="#1a1a1a" stroke-width="2.5"/>
+  <!-- Puff superior central (más alto) -->
+  <ellipse cx="32" cy="18" rx="9" ry="10" fill="white" stroke="#1a1a1a" stroke-width="2.5"/>
 </svg>
