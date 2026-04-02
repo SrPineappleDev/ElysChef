@@ -61,12 +61,13 @@ const Navbar = () => {
                   <Crown className="w-3 h-3" /> VIP
                 </span>
               )}
-              {/* Nombre del usuario como enlace al perfil (solo en pantallas medianas o grandes) */}
+              {/* Nombre del usuario como enlace al perfil */}
               <Link
                 to="/profile"
-                className="hidden md:inline text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
-                {profile?.nombre || profile?.email}
+                <span className="hidden md:inline">{profile?.nombre || profile?.email}</span>
+                <User className="w-4 h-4 md:hidden" />
               </Link>
               {/* Botón para cerrar sesión */}
               <Button variant="ghost" size="icon" onClick={signOut} title="Cerrar sesión">
