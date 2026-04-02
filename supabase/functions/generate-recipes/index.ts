@@ -30,7 +30,7 @@ Responde SOLO con un JSON válido (sin markdown, sin code blocks) con esta estru
     {
       "id": "unique-id",
       "title": "Nombre de la receta",
-      "country": "País de origen",
+      "country": "País de origen real (ej: España, Italia, México). NUNCA uses términos como Mediterráneo, Internacional, Fusión u otras regiones genéricas. Debe ser siempre un país concreto.",
       "category": "almuerzo|cena|desayuno|postre|snack",
       "calories": 350,
       "time": "25 min",

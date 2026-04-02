@@ -13,6 +13,8 @@ export interface UserStats {
 export interface RecipeStats {
   total: number;
   byCategory: { category: string; count: number }[];
+  byCountry: { country: string; count: number }[];
+  byDiet: { diet: string; count: number }[];
 }
 
 export interface AllergyStats {
@@ -48,25 +50,44 @@ export async function fetchUserStats(): Promise<UserStats> {
   return { total, free, vip, newThisWeek };
 }
 
-/** Obtiene estadísticas de recetas (total y agrupadas por categoría). */
+/** Obtiene estadísticas de recetas (total, por categoría, por país y por dieta). */
 export async function fetchRecipeStats(): Promise<RecipeStats> {
   const { data, error } = await supabase
     .from("recipes")
-    .select("category");
+    .select("category, country, diet");
   if (error) throw error;
 
   const total = data?.length || 0;
+
   const categoryMap: Record<string, number> = {};
+  const countryMap: Record<string, number> = {};
+  const dietMap: Record<string, number> = {};
+
   data?.forEach((r) => {
     const cat = r.category || "Sin categoría";
     categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+
+    const country = r.country || "Desconocido";
+    countryMap[country] = (countryMap[country] || 0) + 1;
+
+    const diet = r.diet || "Sin restricción";
+    dietMap[diet] = (dietMap[diet] || 0) + 1;
   });
 
   const byCategory = Object.entries(categoryMap)
     .map(([category, count]) => ({ category, count }))
     .sort((a, b) => b.count - a.count);
 
-  return { total, byCategory };
+  const byCountry = Object.entries(countryMap)
+    .map(([country, count]) => ({ country, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  const byDiet = Object.entries(dietMap)
+    .map(([diet, count]) => ({ diet, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return { total, byCategory, byCountry, byDiet };
 }
 
 /** Obtiene las alergias más comunes entre los usuarios. */

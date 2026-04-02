@@ -93,7 +93,7 @@ export function useRecipeGenerator() {
       let savedRecipes: Recipe[] = [];
       if (user) {
         for (const r of limited) {
-          const saved = await saveRecipe(user.id, r);
+          const saved = await saveRecipe(user.id, r, filters.diet);
           savedRecipes.push(saved);
         }
       } else {

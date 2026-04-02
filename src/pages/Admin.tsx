@@ -117,6 +117,43 @@ const Admin = () => {
         </Card>
       </div>
 
+      {/* Recetas por país y por dieta */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Recetas por país */}
+        <Card className="p-5">
+          <h2 className="font-display font-semibold text-base mb-4">Recetas por país (top 10)</h2>
+          {(recipeStats?.byCountry || []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sin datos aún.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={recipeStats?.byCountry || []} layout="vertical" margin={{ left: 20 }}>
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis type="category" dataKey="country" width={90} tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </Card>
+
+        {/* Recetas por dieta */}
+        <Card className="p-5">
+          <h2 className="font-display font-semibold text-base mb-4">Recetas por dieta (VIP)</h2>
+          {(recipeStats?.byDiet || []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sin datos aún.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={recipeStats?.byDiet || []} layout="vertical" margin={{ left: 20 }}>
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis type="category" dataKey="diet" width={90} tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </Card>
+      </div>
+
       {/* Alergias más comunes */}
       {allergyStats.length > 0 && (
         <Card className="p-5 mb-8">

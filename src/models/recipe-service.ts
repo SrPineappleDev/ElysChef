@@ -88,7 +88,7 @@ export async function generateRecipeImage(title: string, imageQuery?: string): P
  * Inserta todos los campos de la receta en la tabla "recipes".
  * Devuelve la receta con el ID asignado por la base de datos.
  */
-export async function saveRecipe(userId: string, recipe: Recipe): Promise<Recipe> {
+export async function saveRecipe(userId: string, recipe: Recipe, diet?: string): Promise<Recipe> {
   const { data } = await supabase.from("recipes").insert({
     user_id: userId,
     title: recipe.title,
@@ -104,6 +104,7 @@ export async function saveRecipe(userId: string, recipe: Recipe): Promise<Recipe
     steps: recipe.steps as any,
     country: recipe.country || "",
     category: recipe.category || "",
+    diet: diet || "",
     calories_per_ingredient: (recipe.calories_per_ingredient || {}) as any,
   }).select().single();
 
