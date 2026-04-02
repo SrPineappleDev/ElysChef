@@ -3,7 +3,7 @@
 // genera recetas con IA, las guarda en la base de datos y les asigna imágenes generadas.
 // Aplica el límite de recetas según el plan del usuario (1 para free, 3 para VIP).
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -15,6 +15,7 @@ import {
   fileToBase64,
 } from "@/models/recipe-service";
 import { deductCredits } from "@/models/profile-service";
+import { fetchUserAllergies } from "@/models/allergy-service";
 import type { Recipe } from "@/lib/types";
 
 /**
@@ -38,6 +39,16 @@ export function useRecipeGenerator() {
   const { user, profile, refreshProfile } = useAuth();
   // Contador que identifica cada generación para evitar actualizar estado obsoleto (race condition)
   const generationIdRef = useRef(0);
+  // Alergias del usuario VIP (nombres para enviar a la IA)
+  const [userAllergyNames, setUserAllergyNames] = useState<string[]>([]);
+
+  // Carga las alergias del usuario VIP al montar el componente
+  useEffect(() => {
+    if (profile?.plan !== "vip" || !profile?.id) return;
+    fetchUserAllergies(profile.id)
+      .then((list) => setUserAllergyNames(list.map((a) => a.name)))
+      .catch(() => {});
+  }, [profile?.plan, profile?.id]);
 
   // Número de recetas a generar: solo VIP puede elegir entre 1-3; free siempre 1
   const [recipeCount, setRecipeCount] = useState<1 | 2 | 3>(1);
@@ -68,6 +79,7 @@ export function useRecipeGenerator() {
       const filters = {
         country: country !== "all" ? country : undefined,
         category: category !== "all" ? category : undefined,
+        allergies: profile?.plan === "vip" && userAllergyNames.length > 0 ? userAllergyNames : undefined,
       };
       const result = await generateRecipesFromAI(ingredients, filters);
 

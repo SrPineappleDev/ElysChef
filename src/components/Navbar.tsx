@@ -4,7 +4,7 @@
 // Si no lo está, muestra el botón de acceso al formulario de autenticación.
 
 import { Link, useLocation } from "react-router-dom";
-import { ChefHat, Heart, Camera, LogOut, Crown, User } from "lucide-react";
+import { ChefHat, Heart, Camera, LogOut, Crown, User, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
@@ -55,6 +55,17 @@ const Navbar = () => {
           {/* Sección derecha: muestra info del usuario o botón de login */}
           {session ? (
             <div className="flex items-center gap-2 ml-2">
+              {/* Enlace al panel admin solo visible para administradores */}
+              {profile?.role === "admin" && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                  title="Panel de Administración"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span className="hidden sm:inline">Admin</span>
+                </Link>
+              )}
               {/* Badge VIP solo visible para usuarios con plan premium */}
               {profile?.plan === "vip" && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs font-semibold">

@@ -14,6 +14,7 @@ export interface Profile {
   email: string;
   plan: "free" | "vip";
   credits: number;
+  role: "user" | "admin";
 }
 
 // Tipos de los valores que expone el contexto de autenticación

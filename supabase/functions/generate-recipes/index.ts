@@ -10,15 +10,18 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { ingredients, country, category } = await req.json();
+    const { ingredients, country, category, allergies } = await req.json();
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const ingredientList = ingredients.join(", ");
     const countryFilter = country ? `\nEl país de origen de las recetas debe ser: ${country}.` : "";
     const categoryFilter = category ? `\nLa categoría de las recetas debe ser: ${category}.` : "";
+    const allergyFilter = allergies && allergies.length > 0
+      ? `\nIMPORTANTE: El usuario es alérgico a los siguientes alimentos. NO incluyas estos ingredientes en ninguna receta: ${allergies.join(", ")}.`
+      : "";
 
-    const systemPrompt = `Eres un chef experto y nutricionista. Genera exactamente 3 recetas usando los ingredientes proporcionados. Puedes añadir ingredientes básicos de cocina (sal, pimienta, aceite, etc.) pero la receta debe centrarse en los ingredientes dados.${countryFilter}${categoryFilter}
+    const systemPrompt = `Eres un chef experto y nutricionista. Genera exactamente 3 recetas usando los ingredientes proporcionados. Puedes añadir ingredientes básicos de cocina (sal, pimienta, aceite, etc.) pero la receta debe centrarse en los ingredientes dados.${countryFilter}${categoryFilter}${allergyFilter}
 
 Responde SOLO con un JSON válido (sin markdown, sin code blocks) con esta estructura exacta:
 {

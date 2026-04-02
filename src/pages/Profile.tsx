@@ -3,7 +3,7 @@
 // cambiar su contraseña, gestionar su plan (gratuito o VIP) y recargar créditos.
 // Delega toda la lógica al controlador useProfileController.
 
-import { User, Mail, Crown, Eye, EyeOff, Zap, Save, KeyRound, Lock, Coins } from "lucide-react";
+import { User, Mail, Crown, Eye, EyeOff, Zap, Save, KeyRound, Lock, Coins, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,9 @@ const Profile = () => {
     handleSelectCreditPackage,
     handleConfirmAddCredits,
     handleCancelAddCredits,
+    catalogAllergies,
+    userAllergyIds,
+    handleToggleAllergy,
     pwOpen, setPwOpen,
     pwLoading,
     currentPassword, setCurrentPassword,
@@ -236,6 +239,41 @@ const Profile = () => {
           Generar recetas: <span className="font-semibold">50 créditos</span> · Analizar imagen: <span className="font-semibold">25 créditos</span>
         </p>
       </Card>
+
+      {/* Tarjeta de alergias (solo VIP) */}
+      {isVip && (
+        <Card className="p-6 space-y-4 bg-card border-border mb-6">
+          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-primary" /> Mis alergias
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Las recetas generadas evitarán los ingredientes que selecciones.
+          </p>
+          {catalogAllergies.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">No hay alergias disponibles en el catálogo.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {catalogAllergies.map((allergy) => {
+                const selected = userAllergyIds.has(allergy.id);
+                return (
+                  <button
+                    key={allergy.id}
+                    onClick={() => handleToggleAllergy(allergy.id)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
+                      selected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-muted text-muted-foreground hover:border-primary/40"
+                    }`}
+                  >
+                    {selected && <span className="mr-1">✓</span>}
+                    {allergy.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Tarjeta de recarga de créditos */}
       <Card className="p-6 space-y-5 bg-card border-border">

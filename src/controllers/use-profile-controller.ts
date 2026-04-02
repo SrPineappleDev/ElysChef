@@ -2,12 +2,14 @@
 // Gestiona la edición de datos personales, el cambio de plan y la actualización
 // de contraseña. Conecta la página Profile con los servicios de perfil y autenticación.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import * as profileService from "@/models/profile-service";
 import * as authService from "@/models/auth-service";
 import * as favoritesService from "@/models/favorites-service";
+import * as allergyService from "@/models/allergy-service";
+import type { Allergy } from "@/models/allergy-service";
 import { traducirErrorAuth } from "@/lib/traducir-error-auth";
 
 /**
@@ -37,6 +39,36 @@ export function useProfileController() {
 
   // Estado para el diálogo de confirmación de compra de créditos
   const [creditPackage, setCreditPackage] = useState<{ amount: number; price: string } | null>(null);
+
+  // Estado de alergias del usuario VIP
+  const [catalogAllergies, setCatalogAllergies] = useState<Allergy[]>([]);
+  const [userAllergyIds, setUserAllergyIds] = useState<Set<string>>(new Set());
+
+  // Carga el catálogo y las alergias del usuario si es VIP
+  useEffect(() => {
+    if (profile?.plan !== "vip" || !profile?.id) return;
+    allergyService.fetchAllergies().then(setCatalogAllergies).catch(() => {});
+    allergyService.fetchUserAllergies(profile.id).then((list) => {
+      setUserAllergyIds(new Set(list.map((a) => a.id)));
+    }).catch(() => {});
+  }, [profile?.plan, profile?.id]);
+
+  /** Activa o desactiva una alergia para el usuario VIP. */
+  const handleToggleAllergy = async (allergyId: string) => {
+    if (!profile) return;
+    const isSelected = userAllergyIds.has(allergyId);
+    try {
+      if (isSelected) {
+        await allergyService.removeUserAllergy(profile.id, allergyId);
+        setUserAllergyIds((prev) => { const s = new Set(prev); s.delete(allergyId); return s; });
+      } else {
+        await allergyService.addUserAllergy(profile.id, allergyId);
+        setUserAllergyIds((prev) => new Set(prev).add(allergyId));
+      }
+    } catch {
+      toast.error("Error al actualizar las alergias");
+    }
+  };
 
   // Estado del formulario de cambio de contraseña
   const [pwOpen, setPwOpen] = useState(false);        // Controla si el formulario está visible
@@ -250,5 +282,8 @@ export function useProfileController() {
     confirmPassword, setConfirmPassword,
     handleUpdatePassword,
     handleCancelPwChange,
+    catalogAllergies,
+    userAllergyIds,
+    handleToggleAllergy,
   };
 }
