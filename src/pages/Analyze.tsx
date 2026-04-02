@@ -27,6 +27,7 @@ const Analyze = () => {
     isLoading, isRecognizing,
     country, setCountry,
     category, setCategory,
+    diet, setDiet,
     profile,
     recipeCount, setRecipeCount,
     handleGenerate, handleImageSelected,
@@ -78,8 +79,11 @@ const Analyze = () => {
         <RecipeFilters
           country={country}
           category={category}
+          diet={diet}
+          isVip={profile?.plan === "vip"}
           onCountryChange={setCountry}
           onCategoryChange={setCategory}
+          onDietChange={setDiet}
         />
       </div>
 

@@ -36,6 +36,7 @@ export function useRecipeGenerator() {
   const [isRecognizing, setIsRecognizing] = useState(false); // Reconocimiento de imagen en curso
   const [country, setCountry] = useState("all");
   const [category, setCategory] = useState("all");
+  const [diet, setDiet] = useState("all");
   const { user, profile, refreshProfile } = useAuth();
   // Contador que identifica cada generación para evitar actualizar estado obsoleto (race condition)
   const generationIdRef = useRef(0);
@@ -79,6 +80,7 @@ export function useRecipeGenerator() {
       const filters = {
         country: country !== "all" ? country : undefined,
         category: category !== "all" ? category : undefined,
+        diet: diet !== "all" ? diet : undefined,
         allergies: profile?.plan === "vip" && userAllergyNames.length > 0 ? userAllergyNames : undefined,
       };
       const result = await generateRecipesFromAI(ingredients, filters);
@@ -200,6 +202,8 @@ export function useRecipeGenerator() {
     setCountry,
     category,
     setCategory,
+    diet,
+    setDiet,
     profile,
     recipeCount,
     setRecipeCount,

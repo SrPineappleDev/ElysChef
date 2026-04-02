@@ -54,12 +54,13 @@ export async function recognizeIngredientsFromImage(imageBase64: string): Promis
  */
 export async function generateRecipesFromAI(
   ingredients: string[],
-  options?: { country?: string; category?: string; allergies?: string[] }
+  options?: { country?: string; category?: string; diet?: string; allergies?: string[] }
 ): Promise<Recipe[]> {
   const data = await invokeFunction("generate-recipes", {
     ingredients,
     country: options?.country,
     category: options?.category,
+    diet: options?.diet,
     allergies: options?.allergies,
   });
   if (data?.error) throw new Error(data.error);
