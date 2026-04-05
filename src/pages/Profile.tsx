@@ -3,7 +3,7 @@
 // cambiar su contraseña, gestionar su plan (gratuito o VIP) y recargar créditos.
 // Delega toda la lógica al controlador useProfileController.
 
-import { User, Mail, Crown, Eye, EyeOff, Zap, Save, KeyRound, Lock, Coins, ShieldAlert } from "lucide-react";
+import { User, Mail, Crown, Eye, EyeOff, Zap, Save, KeyRound, Lock, Coins, ShieldAlert, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import CreditsDisplay from "@/components/CreditsDisplay";
 import { useProfileController } from "@/controllers/use-profile-controller";
+import { useAuth } from "@/hooks/use-auth";
 
 // Paquetes de créditos disponibles con precio base
 const CREDIT_PACKAGES = [
@@ -68,6 +69,8 @@ const Profile = () => {
     handleUpdatePassword,
     handleCancelPwChange,
   } = useProfileController();
+
+  const { signOut } = useAuth();
 
   // Estado local para controlar la visibilidad de cada campo de contraseña
   const [showCurrentPw, setShowCurrentPw] = useState(false);
@@ -276,7 +279,7 @@ const Profile = () => {
       )}
 
       {/* Tarjeta de recarga de créditos */}
-      <Card className="p-6 space-y-5 bg-card border-border">
+      <Card className="p-6 space-y-5 bg-card border-border mb-6">
         <div className="flex items-center gap-2">
           <Coins className="w-5 h-5 text-primary" />
           <h2 className="font-display font-semibold text-lg">Recargar créditos</h2>
@@ -318,6 +321,16 @@ const Profile = () => {
           })}
         </div>
       </Card>
+
+      {/* Botón de cerrar sesión */}
+      <Button
+        onClick={signOut}
+        variant="destructive"
+        className="w-full font-display font-semibold"
+      >
+        <LogOut className="w-4 h-4 mr-2" />
+        Cerrar sesión
+      </Button>
 
       {/* Diálogo de confirmación al hacer upgrade gratuito → VIP */}
       <AlertDialog open={upgradeDialogOpen} onOpenChange={(open) => { if (!open) handleCancelUpgrade(); }}>

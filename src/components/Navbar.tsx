@@ -4,14 +4,14 @@
 // Si no lo está, muestra el botón de acceso al formulario de autenticación.
 
 import { Link, useLocation } from "react-router-dom";
-import { ChefHat, Heart, Camera, LogOut, Crown, User, ShieldCheck } from "lucide-react";
+import { ChefHat, Heart, Camera, Crown, User, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
 // Componente de la barra de navegación sticky con los enlaces principales
 const Navbar = () => {
   const location = useLocation();
-  const { session, profile, signOut } = useAuth();
+  const { session, profile } = useAuth();
 
   // Definición de los enlaces de navegación principales con su ruta e icono
   const links = [
@@ -28,7 +28,7 @@ const Navbar = () => {
           <div className="w-9 h-9 rounded-lg gradient-hero flex items-center justify-center">
             <ChefHat className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-xl text-foreground">Ely's Chef</span>
+          <span className="hidden sm:inline font-display font-bold text-xl text-foreground">Ely's Chef</span>
         </Link>
 
         <div className="flex items-center gap-1">
@@ -80,10 +80,6 @@ const Navbar = () => {
                 <span className="hidden md:inline">{profile?.nombre || profile?.email}</span>
                 <User className="w-4 h-4 md:hidden" />
               </Link>
-              {/* Botón para cerrar sesión */}
-              <Button variant="ghost" size="icon" onClick={signOut} title="Cerrar sesión">
-                <LogOut className="w-4 h-4" />
-              </Button>
             </div>
           ) : (
             // Botón de acceso si no hay sesión activa
