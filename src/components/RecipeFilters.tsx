@@ -40,7 +40,7 @@ const RecipeFilters = ({ country, category, diet, isVip, onCountryChange, onCate
           <SelectTrigger className="bg-card border-border">
             <SelectValue placeholder="Todos los países" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-48 overflow-y-auto">
             <SelectItem value="all">Todos los países</SelectItem>
             {COUNTRIES.map((c) => (
               <SelectItem key={c} value={c}>{c}</SelectItem>
