@@ -74,8 +74,10 @@ export async function fetchRecipeStats(): Promise<RecipeStats> {
     dietMap[diet] = (dietMap[diet] || 0) + 1;
   });
 
+  const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
   const byCategory = Object.entries(categoryMap)
-    .map(([category, count]) => ({ category, count }))
+    .map(([category, count]) => ({ category: capitalize(category), count }))
     .sort((a, b) => b.count - a.count);
 
   const byCountry = Object.entries(countryMap)
@@ -84,7 +86,7 @@ export async function fetchRecipeStats(): Promise<RecipeStats> {
     .slice(0, 10);
 
   const byDiet = Object.entries(dietMap)
-    .map(([diet, count]) => ({ diet, count }))
+    .map(([diet, count]) => ({ diet: capitalize(diet), count }))
     .sort((a, b) => b.count - a.count);
 
   return { total, byCategory, byCountry, byDiet };

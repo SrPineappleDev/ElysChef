@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      countries: {
+        Row: {
+          id: string
+          name: string
+          archived: boolean
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          archived?: boolean
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          archived?: boolean
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          id: string
+          value: string
+          label: string
+          archived: boolean
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          value: string
+          label: string
+          archived?: boolean
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          value?: string
+          label?: string
+          archived?: boolean
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      diets: {
+        Row: {
+          id: string
+          value: string
+          label: string
+          archived: boolean
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          value: string
+          label: string
+          archived?: boolean
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          value?: string
+          label?: string
+          archived?: boolean
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -79,9 +148,13 @@ export type Database = {
           calories_per_ingredient: Json | null
           carbs: string | null
           category: string | null
+          category_id: string | null
           country: string | null
+          country_id: string | null
           created_at: string | null
           description: string | null
+          diet: string | null
+          diet_id: string | null
           fat: string | null
           id: string
           image: string | null
@@ -98,9 +171,13 @@ export type Database = {
           calories_per_ingredient?: Json | null
           carbs?: string | null
           category?: string | null
+          category_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string | null
           description?: string | null
+          diet?: string | null
+          diet_id?: string | null
           fat?: string | null
           id?: string
           image?: string | null
@@ -117,9 +194,13 @@ export type Database = {
           calories_per_ingredient?: Json | null
           carbs?: string | null
           category?: string | null
+          category_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string | null
           description?: string | null
+          diet?: string | null
+          diet_id?: string | null
           fat?: string | null
           id?: string
           image?: string | null
@@ -131,7 +212,29 @@ export type Database = {
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recipes_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipes_diet_id_fkey"
+            columns: ["diet_id"]
+            isOneToOne: false
+            referencedRelation: "diets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

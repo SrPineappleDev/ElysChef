@@ -1,21 +1,13 @@
 // Componente de filtros para recetas.
-// Muestra dos selectores para filtrar las recetas generadas por país de origen
-// y por categoría (desayuno, almuerzo, cena, postre, snack).
+// Carga los catálogos de países, categorías y dietas desde Supabase
+// y muestra tres selectores para filtrar las recetas generadas.
 
+import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { CATEGORIES, COUNTRIES } from "@/lib/types";
+import { fetchCountries, fetchCategories, fetchDiets } from "@/models/catalog-service";
+import type { CatalogCountry, CatalogCategory, CatalogDiet } from "@/models/catalog-service";
 
-export const DIETS = [
-  { value: "vegetariano",  label: "🥦 Vegetariano" },
-  { value: "vegano",       label: "🌱 Vegano" },
-  { value: "sin gluten",   label: "🌾 Sin gluten" },
-  { value: "sin lactosa",  label: "🥛 Sin lactosa" },
-  { value: "keto",         label: "🥩 Keto" },
-  { value: "sin azúcar",   label: "🍬 Sin azúcar" },
-];
-
-// Props del componente de filtros
 interface RecipeFiltersProps {
   country: string;
   category: string;
@@ -31,6 +23,16 @@ interface RecipeFiltersProps {
  * El valor "all" representa la opción "sin filtro" para cada selector.
  */
 const RecipeFilters = ({ country, category, diet, isVip, onCountryChange, onCategoryChange, onDietChange }: RecipeFiltersProps) => {
+  const [countries, setCountries] = useState<CatalogCountry[]>([]);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [diets, setDiets] = useState<CatalogDiet[]>([]);
+
+  useEffect(() => {
+    fetchCountries().then(setCountries).catch(() => {});
+    fetchCategories().then(setCategories).catch(() => {});
+    fetchDiets().then(setDiets).catch(() => {});
+  }, []);
+
   return (
     <div className="flex flex-wrap gap-3">
       {/* Selector de país */}
@@ -42,8 +44,8 @@ const RecipeFilters = ({ country, category, diet, isVip, onCountryChange, onCate
           </SelectTrigger>
           <SelectContent className="max-h-48 overflow-y-auto">
             <SelectItem value="all">Todos los países</SelectItem>
-            {COUNTRIES.map((c) => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
+            {countries.map((c) => (
+              <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -58,8 +60,8 @@ const RecipeFilters = ({ country, category, diet, isVip, onCountryChange, onCate
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
-            {CATEGORIES.map((c) => (
-              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.value}>{c.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -75,8 +77,8 @@ const RecipeFilters = ({ country, category, diet, isVip, onCountryChange, onCate
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Sin restricción</SelectItem>
-              {DIETS.map((d) => (
-                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+              {diets.map((d) => (
+                <SelectItem key={d.id} value={d.value}>{d.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

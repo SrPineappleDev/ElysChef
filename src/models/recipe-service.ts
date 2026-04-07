@@ -54,7 +54,15 @@ export async function recognizeIngredientsFromImage(imageBase64: string): Promis
  */
 export async function generateRecipesFromAI(
   ingredients: string[],
-  options?: { country?: string; category?: string; diet?: string; allergies?: string[] }
+  options?: {
+    country?: string;
+    category?: string;
+    diet?: string;
+    allergies?: string[];
+    availableCountries?: string[];
+    availableCategories?: string[];
+    availableDiets?: string[];
+  }
 ): Promise<Recipe[]> {
   const data = await invokeFunction("generate-recipes", {
     ingredients,
@@ -62,6 +70,9 @@ export async function generateRecipesFromAI(
     category: options?.category,
     diet: options?.diet,
     allergies: options?.allergies,
+    availableCountries: options?.availableCountries,
+    availableCategories: options?.availableCategories,
+    availableDiets: options?.availableDiets,
   });
   if (data?.error) throw new Error(data.error);
   return data?.recipes || [];
@@ -84,11 +95,34 @@ export async function generateRecipeImage(title: string, imageQuery?: string): P
 }
 
 /**
+ * Resuelve el UUID de un registro del catálogo a partir de su valor string.
+ * Devuelve null si no existe o está archivado.
+ */
+async function resolveCatalogId(table: "countries" | "categories" | "diets", field: "name" | "value", value: string): Promise<string | null> {
+  if (!value) return null;
+  const { data } = await supabase
+    .from(table)
+    .select("id")
+    .eq(field, value)
+    .eq("archived", false)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+/**
  * Guarda una receta en la base de datos asociada al usuario.
- * Inserta todos los campos de la receta en la tabla "recipes".
+ * Resuelve los IDs de catálogo (country_id, category_id, diet_id) antes de insertar
+ * para mantener la integridad referencial con las tablas de catálogo.
  * Devuelve la receta con el ID asignado por la base de datos.
  */
 export async function saveRecipe(userId: string, recipe: Recipe, diet?: string): Promise<Recipe> {
+  // Resolver IDs del catálogo en paralelo
+  const [country_id, category_id, diet_id] = await Promise.all([
+    resolveCatalogId("countries", "name", recipe.country || ""),
+    resolveCatalogId("categories", "value", recipe.category || ""),
+    resolveCatalogId("diets", "value", diet || ""),
+  ]);
+
   const { data } = await supabase.from("recipes").insert({
     user_id: userId,
     title: recipe.title,
@@ -105,10 +139,12 @@ export async function saveRecipe(userId: string, recipe: Recipe, diet?: string):
     country: recipe.country || "",
     category: recipe.category || "",
     diet: diet || "",
+    country_id,
+    category_id,
+    diet_id,
     calories_per_ingredient: (recipe.calories_per_ingredient || {}) as any,
   }).select().single();
 
-  // Si la inserción devuelve datos, actualiza el ID de la receta con el generado por la BD
   return data ? { ...recipe, id: data.id } : recipe;
 }
 

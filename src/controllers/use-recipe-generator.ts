@@ -16,6 +16,7 @@ import {
 } from "@/models/recipe-service";
 import { deductCredits } from "@/models/profile-service";
 import { fetchUserAllergies } from "@/models/allergy-service";
+import { fetchCountries, fetchCategories, fetchDiets } from "@/models/catalog-service";
 import type { Recipe } from "@/lib/types";
 
 /**
@@ -43,6 +44,11 @@ export function useRecipeGenerator() {
   // Alergias del usuario VIP (nombres para enviar a la IA)
   const [userAllergyNames, setUserAllergyNames] = useState<string[]>([]);
 
+  // Catálogos activos para restringir la IA a los valores permitidos
+  const [activeCountries, setActiveCountries] = useState<string[]>([]);
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [activeDiets, setActiveDiets] = useState<string[]>([]);
+
   // Carga las alergias del usuario VIP al montar el componente
   useEffect(() => {
     if (profile?.plan !== "vip" || !profile?.id) return;
@@ -50,6 +56,13 @@ export function useRecipeGenerator() {
       .then((list) => setUserAllergyNames(list.map((a) => a.name)))
       .catch(() => {});
   }, [profile?.plan, profile?.id]);
+
+  // Carga los catálogos activos al montar para pasarlos al prompt de la IA
+  useEffect(() => {
+    fetchCountries().then((list) => setActiveCountries(list.map((c) => c.name))).catch(() => {});
+    fetchCategories().then((list) => setActiveCategories(list.map((c) => c.value))).catch(() => {});
+    fetchDiets().then((list) => setActiveDiets(list.map((d) => d.value))).catch(() => {});
+  }, []);
 
   // Número de recetas a generar: solo VIP puede elegir entre 1-3; free siempre 1
   const [recipeCount, setRecipeCount] = useState<1 | 2 | 3>(1);
@@ -82,6 +95,9 @@ export function useRecipeGenerator() {
         category: category !== "all" ? category : undefined,
         diet: diet !== "all" ? diet : undefined,
         allergies: profile?.plan === "vip" && userAllergyNames.length > 0 ? userAllergyNames : undefined,
+        availableCountries: activeCountries.length > 0 ? activeCountries : undefined,
+        availableCategories: activeCategories.length > 0 ? activeCategories : undefined,
+        availableDiets: activeDiets.length > 0 ? activeDiets : undefined,
       };
       const result = await generateRecipesFromAI(ingredients, filters);
 

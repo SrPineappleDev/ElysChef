@@ -46,3 +46,13 @@ export const COUNTRIES = [
   "Francia", "Tailandia", "Perú", "Argentina", "Colombia",
   "Estados Unidos", "Grecia", "Marruecos", "Corea del Sur",
 ];
+
+// Lista de dietas disponibles (usada como semilla del catálogo dinámico)
+export const DIETS: { value: string; label: string }[] = [
+  { value: "vegetariano",  label: "🥦 Vegetariano" },
+  { value: "vegano",       label: "🌱 Vegano" },
+  { value: "sin gluten",   label: "🌾 Sin gluten" },
+  { value: "sin lactosa",  label: "🥛 Sin lactosa" },
+  { value: "keto",         label: "🥩 Keto" },
+  { value: "sin azúcar",   label: "🍬 Sin azúcar" },
+];

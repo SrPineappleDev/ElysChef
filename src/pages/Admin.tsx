@@ -2,7 +2,7 @@
 // Muestra KPIs de la aplicación y permite gestionar el catálogo de alergias.
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { Users, ChefHat, Coins, TrendingUp, Trash2, Plus, ShieldCheck } from "lucide-react";
+import { Users, ChefHat, Coins, TrendingUp, Trash2, Plus, ShieldCheck, Archive, ArchiveRestore } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,27 @@ const Admin = () => {
     savingAllergy,
     handleAddAllergy,
     handleDeleteAllergy,
+    countries,
+    newCountry,
+    setNewCountry,
+    savingCountry,
+    handleAddCountry,
+    handleArchiveCountry,
+    handleRestoreCountry,
+    categories,
+    newCategory,
+    setNewCategory,
+    savingCategory,
+    handleAddCategory,
+    handleArchiveCategory,
+    handleRestoreCategory,
+    diets,
+    newDiet,
+    setNewDiet,
+    savingDiet,
+    handleAddDiet,
+    handleArchiveDiet,
+    handleRestoreDiet,
   } = useAdminController();
 
   if (loading) {
@@ -169,43 +190,167 @@ const Admin = () => {
         </Card>
       )}
 
-      {/* Gestión del catálogo de alergias */}
-      <Card className="p-5">
-        <h2 className="font-display font-semibold text-base mb-4">Catálogo de alergias</h2>
+      {/* Gestión de catálogos */}
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
 
-        {/* Formulario para añadir */}
-        <div className="flex gap-2 mb-5">
-          <Input
-            placeholder="Nueva alergia (ej. Kiwi)"
-            value={newAllergyName}
-            onChange={(e) => setNewAllergyName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddAllergy()}
-            className="max-w-xs"
-          />
-          <Button onClick={handleAddAllergy} disabled={savingAllergy || !newAllergyName.trim()} className="gradient-hero text-primary-foreground font-semibold">
-            <Plus className="w-4 h-4 mr-1" /> Añadir
-          </Button>
-        </div>
+        {/* Catálogo de alergias */}
+        <Card className="p-5">
+          <h2 className="font-display font-semibold text-base mb-4">Catálogo de alergias</h2>
+          <div className="flex gap-2 mb-5">
+            <Input
+              placeholder="Nueva alergia (ej. Kiwi)"
+              value={newAllergyName}
+              onChange={(e) => setNewAllergyName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddAllergy()}
+              className="max-w-xs"
+            />
+            <Button onClick={handleAddAllergy} disabled={savingAllergy || !newAllergyName.trim()} className="gradient-hero text-primary-foreground font-semibold">
+              <Plus className="w-4 h-4 mr-1" /> Añadir
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {catalog.map((allergy) => (
+              <div key={allergy.id} className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5 text-sm font-medium">
+                {allergy.name}
+                <button onClick={() => handleDeleteAllergy(allergy.id)} className="text-muted-foreground hover:text-destructive transition-colors ml-1" title="Eliminar">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {catalog.length === 0 && <p className="text-sm text-muted-foreground">No hay alergias en el catálogo.</p>}
+          </div>
+        </Card>
 
-        {/* Lista de alergias */}
-        <div className="flex flex-wrap gap-2">
-          {catalog.map((allergy) => (
-            <div key={allergy.id} className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5 text-sm font-medium">
-              {allergy.name}
-              <button
-                onClick={() => handleDeleteAllergy(allergy.id)}
-                className="text-muted-foreground hover:text-destructive transition-colors ml-1"
-                title="Eliminar"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+        {/* Catálogo de países */}
+        <Card className="p-5">
+          <h2 className="font-display font-semibold text-base mb-4">Catálogo de países</h2>
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Nuevo país (ej. Brasil)"
+              value={newCountry}
+              onChange={(e) => setNewCountry(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddCountry()}
+              className="max-w-xs"
+            />
+            <Button onClick={handleAddCountry} disabled={savingCountry || !newCountry.trim()} className="gradient-hero text-primary-foreground font-semibold">
+              <Plus className="w-4 h-4 mr-1" /> Añadir
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+            {countries.filter((c) => !c.archived).map((c) => (
+              <div key={c.id} className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5 text-sm font-medium">
+                {c.name}
+                <button onClick={() => handleArchiveCountry(c.id)} className="text-muted-foreground hover:text-amber-500 transition-colors ml-1" title="Archivar">
+                  <Archive className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {countries.filter((c) => !c.archived).length === 0 && <p className="text-sm text-muted-foreground">No hay países activos.</p>}
+          </div>
+          {countries.some((c) => c.archived) && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-2">Archivados</p>
+              <div className="flex flex-wrap gap-2">
+                {countries.filter((c) => c.archived).map((c) => (
+                  <div key={c.id} className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground">
+                    {c.name}
+                    <button onClick={() => handleRestoreCountry(c.id)} className="hover:text-primary transition-colors ml-1" title="Restaurar">
+                      <ArchiveRestore className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-          {catalog.length === 0 && (
-            <p className="text-sm text-muted-foreground">No hay alergias en el catálogo.</p>
           )}
-        </div>
-      </Card>
+        </Card>
+
+        {/* Catálogo de categorías */}
+        <Card className="p-5">
+          <h2 className="font-display font-semibold text-base mb-4">Catálogo de categorías</h2>
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Nueva categoría (ej. Brunch)"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
+              className="max-w-xs"
+            />
+            <Button onClick={handleAddCategory} disabled={savingCategory || !newCategory.trim()} className="gradient-hero text-primary-foreground font-semibold">
+              <Plus className="w-4 h-4 mr-1" /> Añadir
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.filter((c) => !c.archived).map((c) => (
+              <div key={c.id} className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5 text-sm font-medium">
+                {c.label}
+                <button onClick={() => handleArchiveCategory(c.id)} className="text-muted-foreground hover:text-amber-500 transition-colors ml-1" title="Archivar">
+                  <Archive className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {categories.filter((c) => !c.archived).length === 0 && <p className="text-sm text-muted-foreground">No hay categorías activas.</p>}
+          </div>
+          {categories.some((c) => c.archived) && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-2">Archivadas</p>
+              <div className="flex flex-wrap gap-2">
+                {categories.filter((c) => c.archived).map((c) => (
+                  <div key={c.id} className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground">
+                    {c.label}
+                    <button onClick={() => handleRestoreCategory(c.id)} className="hover:text-primary transition-colors ml-1" title="Restaurar">
+                      <ArchiveRestore className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Catálogo de dietas (VIP) */}
+        <Card className="p-5">
+          <h2 className="font-display font-semibold text-base mb-4">Catálogo de dietas <span className="text-xs text-muted-foreground font-normal">(solo VIP)</span></h2>
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Nueva dieta (ej. 🫀 Sin sodio)"
+              value={newDiet}
+              onChange={(e) => setNewDiet(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddDiet()}
+              className="max-w-xs"
+            />
+            <Button onClick={handleAddDiet} disabled={savingDiet || !newDiet.trim()} className="gradient-hero text-primary-foreground font-semibold">
+              <Plus className="w-4 h-4 mr-1" /> Añadir
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {diets.filter((d) => !d.archived).map((d) => (
+              <div key={d.id} className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5 text-sm font-medium">
+                {d.label}
+                <button onClick={() => handleArchiveDiet(d.id)} className="text-muted-foreground hover:text-amber-500 transition-colors ml-1" title="Archivar">
+                  <Archive className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {diets.filter((d) => !d.archived).length === 0 && <p className="text-sm text-muted-foreground">No hay dietas activas.</p>}
+          </div>
+          {diets.some((d) => d.archived) && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-2">Archivadas</p>
+              <div className="flex flex-wrap gap-2">
+                {diets.filter((d) => d.archived).map((d) => (
+                  <div key={d.id} className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground">
+                    {d.label}
+                    <button onClick={() => handleRestoreDiet(d.id)} className="hover:text-primary transition-colors ml-1" title="Restaurar">
+                      <ArchiveRestore className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+
+      </div>
     </div>
   );
 };
