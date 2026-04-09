@@ -13,6 +13,7 @@ async function getEnglishKeywords(title: string, geminiKey: string): Promise<str
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
         contents: [{
           role: "user",
           parts: [{ text: `Give me 2-3 English keywords (comma separated, no explanation) to search a food photo of: "${title}". Example: "garlic chicken, spanish dish"` }],

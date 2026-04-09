@@ -29,6 +29,7 @@ Use Spanish names for the ingredients. Be specific (e.g. "tomate cherry" instead
               },
             ],
           },
+          generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
           contents: [
             {
               role: "user",
@@ -62,7 +63,8 @@ Use Spanish names for the ingredients. Be specific (e.g. "tomate cherry" instead
     }
 
     const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const content = parts.find((p: any) => !p.thought && p.text)?.text || parts[0]?.text || "{}";
 
     let parsed;
     try {
