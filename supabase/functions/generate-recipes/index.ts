@@ -62,13 +62,12 @@ Responde SOLO con un JSON válido (sin markdown, sin code blocks) con esta estru
 Sé creativo y genera recetas variadas. Los valores nutricionales y calorías por ingrediente deben ser realistas. Los pasos deben ser claros y detallados. Siempre incluye country, category e imageQuery.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
           contents: [
             {
               role: "user",

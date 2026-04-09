@@ -8,12 +8,11 @@ const corsHeaders = {
 
 async function getEnglishKeywords(title: string, geminiKey: string): Promise<string> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
         contents: [{
           role: "user",
           parts: [{ text: `Give me 2-3 English keywords (comma separated, no explanation) to search a food photo of: "${title}". Example: "garlic chicken, spanish dish"` }],
