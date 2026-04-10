@@ -6,30 +6,30 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Modelos en orden de preferencia. Si el primero tiene cuota agotada, se prueba el siguiente.
-const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 class QuotaExhaustedError extends Error {
   constructor() { super("DAILY_QUOTA"); }
 }
 
-// Distingue cuota diaria agotada de rate limit por minuto.
-// Los errores de cuota diaria incluyen "PerDay" en el quotaId.
-function isDailyQuota(body: string): boolean {
-  return body.includes("PerDay");
+class ModelUnavailableError extends Error {
+  constructor() { super("MODEL_UNAVAILABLE"); }
 }
 
-// Llama a un modelo concreto con reintentos ante rate limit por minuto (backoff 2s→4s→8s).
-// Lanza QuotaExhaustedError si es cuota diaria agotada.
-async function callWithRetry(url: string, body: unknown, maxRetries = 3): Promise<Response> {
+// Llama a Groq con reintentos ante rate limit (backoff 2s→4s→8s).
+async function callGroq(apiKey: string, messages: unknown[], maxRetries = 3): Promise<Response> {
   let lastStatus = 0;
   let lastBody = "";
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const res = await fetch(url, {
+    const res = await fetch(GROQ_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7 }),
     });
 
     if (res.ok) return res;
@@ -38,33 +38,27 @@ async function callWithRetry(url: string, body: unknown, maxRetries = 3): Promis
     lastBody = await res.text();
 
     if (lastStatus === 429) {
-      if (isDailyQuota(lastBody)) {
-        throw new QuotaExhaustedError();
-      }
+      // Groq devuelve 429 para rate limit por minuto y para cuota diaria agotada
+      const isDaily = lastBody.includes("day") || lastBody.includes("daily") || lastBody.includes("tokens_per_day");
+      if (isDaily) throw new QuotaExhaustedError();
       if (attempt < maxRetries) {
         await new Promise((r) => setTimeout(r, Math.pow(2, attempt + 1) * 1000));
         continue;
       }
     }
 
+    if (lastStatus === 503 || lastStatus === 502) {
+      if (attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, Math.pow(2, attempt + 1) * 1000));
+        continue;
+      }
+      throw new ModelUnavailableError();
+    }
+
     break;
   }
 
   return new Response(lastBody, { status: lastStatus });
-}
-
-// Prueba cada modelo en orden. Si uno tiene cuota diaria agotada, pasa al siguiente.
-async function callGemini(apiKey: string, body: unknown): Promise<Response> {
-  for (const model of GEMINI_MODELS) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-    try {
-      return await callWithRetry(url, body);
-    } catch (err) {
-      if (err instanceof QuotaExhaustedError) continue;
-      throw err;
-    }
-  }
-  throw new QuotaExhaustedError();
 }
 
 serve(async (req) => {
@@ -77,9 +71,9 @@ serve(async (req) => {
     });
 
   try {
-    const { ingredients, country, category, diet, allergies, availableCountries, availableCategories, availableDiets } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const { ingredients, country, category, diet, allergies, availableCountries, availableCategories } = await req.json();
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
 
     const countryFilter = country
       ? `\nEl país de origen de las recetas debe ser: ${country}.`
@@ -131,27 +125,31 @@ Responde SOLO con un JSON válido (sin markdown, sin code blocks) con esta estru
 
 Sé creativo y genera recetas variadas. Los valores nutricionales y calorías por ingrediente deben ser realistas. Los pasos deben ser claros y detallados. Siempre incluye country, category e imageQuery.`;
 
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Genera 3 recetas con estos ingredientes: ${ingredients.join(", ")}` },
+    ];
+
     let response: Response;
     try {
-      response = await callGemini(GEMINI_API_KEY, {
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: `Genera 3 recetas con estos ingredientes: ${ingredients.join(", ")}` }] }],
-      });
+      response = await callGroq(GROQ_API_KEY, messages);
     } catch (err) {
       if (err instanceof QuotaExhaustedError) {
         return json({ error: "Se ha agotado la cuota diaria de la IA. La cuota se restablece automáticamente cada día. Inténtalo mañana o contacta con el administrador." });
+      }
+      if (err instanceof ModelUnavailableError) {
+        return json({ error: "La IA está experimentando alta demanda en este momento. Espera unos segundos e inténtalo de nuevo." });
       }
       throw err;
     }
 
     if (!response.ok) {
-      console.error("Gemini API error:", response.status, await response.text());
+      console.error("Groq API error:", response.status, await response.text());
       return json({ error: `Error en la IA (${response.status}). Intenta de nuevo.` });
     }
 
     const data = await response.json();
-    const parts = data.candidates?.[0]?.content?.parts || [];
-    const content = parts.find((p: any) => !p.thought && p.text)?.text || parts[0]?.text || "";
+    const content = data.choices?.[0]?.message?.content || "";
 
     if (!content) return json({ recipes: [] });
 
