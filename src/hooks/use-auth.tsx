@@ -5,17 +5,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
+import { rowToProfile, type Profile, type ProfileRow } from "@/entities/profile";
 
-// Estructura del perfil de usuario almacenado en la tabla "profiles" de Supabase
-export interface Profile {
-  id: string;
-  nombre: string;
-  apellidos: string;
-  email: string;
-  plan: "free" | "vip";
-  credits: number;
-  role: "user" | "admin";
-}
+export type { Profile };
 
 // Tipos de los valores que expone el contexto de autenticación
 interface AuthContextType {
@@ -63,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("*")
       .eq("id", userId)
       .maybeSingle();
-    if (data) setProfile(data as Profile);
+    if (data) setProfile(rowToProfile(data as ProfileRow));
   };
 
   /**

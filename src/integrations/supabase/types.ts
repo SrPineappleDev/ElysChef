@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      allergies: {
+        Row: {
+          id: string
+          name: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       countries: {
         Row: {
           id: string
@@ -121,6 +139,7 @@ export type Database = {
           id: string
           nombre: string
           plan: Database["public"]["Enums"]["user_plan"]
+          role: string
         }
         Insert: {
           apellidos?: string
@@ -130,6 +149,7 @@ export type Database = {
           id: string
           nombre?: string
           plan?: Database["public"]["Enums"]["user_plan"]
+          role?: string
         }
         Update: {
           apellidos?: string
@@ -139,8 +159,39 @@ export type Database = {
           id?: string
           nombre?: string
           plan?: Database["public"]["Enums"]["user_plan"]
+          role?: string
         }
         Relationships: []
+      }
+      user_allergies: {
+        Row: {
+          user_id: string
+          allergy_id: string
+        }
+        Insert: {
+          user_id: string
+          allergy_id: string
+        }
+        Update: {
+          user_id?: string
+          allergy_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_allergies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_allergies_allergy_id_fkey"
+            columns: ["allergy_id"]
+            isOneToOne: false
+            referencedRelation: "allergies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recipes: {
         Row: {

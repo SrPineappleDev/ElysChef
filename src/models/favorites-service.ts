@@ -4,6 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Recipe } from "@/lib/types";
+import { rowToRecipe, type RecipeRow } from "@/entities/recipe";
 
 /**
  * Model: Favorites Service
@@ -24,28 +25,9 @@ export async function fetchUserFavorites(userId: string): Promise<Recipe[]> {
 
   if (!data) return [];
 
-  // Filtra registros sin receta asociada y mapea los datos al tipo Recipe
   return data
-    .filter((f: any) => f.recipes)
-    .map((f: any) => {
-      const r = f.recipes;
-      return {
-        id: r.id,
-        title: r.title,
-        image: r.image || "",
-        calories: r.calories || 0,
-        time: r.time || "",
-        servings: r.servings || 1,
-        protein: r.protein || "",
-        carbs: r.carbs || "",
-        fat: r.fat || "",
-        ingredients: (r.ingredients as string[]) || [],
-        steps: (r.steps as string[]) || [],
-        country: (r as any).country || "",
-        category: (r as any).category || "",
-        calories_per_ingredient: (r as any).calories_per_ingredient || {},
-      };
-    });
+    .filter((f: { recipes: RecipeRow | null }) => f.recipes)
+    .map((f: { recipes: RecipeRow | null }) => rowToRecipe(f.recipes!));
 }
 
 /**

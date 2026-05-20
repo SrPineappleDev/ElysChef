@@ -4,12 +4,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { COUNTRIES, CATEGORIES, DIETS } from "@/lib/types";
+import type { CatalogCountry, CatalogCategory, CatalogDiet } from "@/entities/catalog";
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-
-export interface CatalogCountry  { id: string; name: string; archived: boolean }
-export interface CatalogCategory { id: string; value: string; label: string; archived: boolean }
-export interface CatalogDiet     { id: string; value: string; label: string; archived: boolean }
+export type { CatalogCountry, CatalogCategory, CatalogDiet };
 
 // ─── Países ───────────────────────────────────────────────────────────────────
 

@@ -3,7 +3,7 @@
 // en la tabla "profiles" de Supabase.
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Profile } from "@/hooks/use-auth";
+import type { Profile } from "@/entities/profile";
 
 /**
  * Model: Profile Service

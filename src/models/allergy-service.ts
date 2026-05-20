@@ -2,12 +2,9 @@
 // Gestiona el catálogo de alergias (admin) y las alergias del usuario (VIP).
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Allergy } from "@/entities/allergy";
 
-export interface Allergy {
-  id: string;
-  name: string;
-  created_at: string;
-}
+export type { Allergy };
 
 /** Obtiene el catálogo completo de alergias ordenado alfabéticamente. */
 export async function fetchAllergies(): Promise<Allergy[]> {
