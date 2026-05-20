@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import * as profileService from "@/models/profile-service";
 import * as authService from "@/models/auth-service";
 import * as favoritesService from "@/models/favorites-service";
+import { CREDITS } from "@/lib/credit-config";
 import * as allergyService from "@/models/allergy-service";
 import type { Allergy } from "@/models/allergy-service";
 import { traducirErrorAuth } from "@/lib/traducir-error-auth";
@@ -140,9 +141,9 @@ export function useProfileController() {
     setUpgradeDialogOpen(false);
     try {
       await profileService.updatePlan(profile.id, "vip");
-      // Si el usuario tenía menos de 500 créditos, sube a 500; si tenía más, los conserva
-      if (profile.credits < 500) {
-        await profileService.setCredits(profile.id, 500);
+      // Si el usuario tenía menos de CREDITS.INITIAL_VIP, sube hasta ahí; si tenía más, los conserva
+      if (profile.credits < CREDITS.INITIAL_VIP) {
+        await profileService.setCredits(profile.id, CREDITS.INITIAL_VIP);
       }
       toast.success("Plan cambiado a VIP");
       await refreshProfile();

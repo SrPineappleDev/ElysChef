@@ -3,7 +3,7 @@
 // en la tabla "profiles" de Supabase.
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Profile } from "@/entities/profile";
+import { rowToProfile, type Profile, type ProfileRow } from "@/entities/profile";
 
 /**
  * Model: Profile Service
@@ -20,7 +20,7 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
     .select("*")
     .eq("id", userId)
     .maybeSingle();
-  return data as Profile | null;
+  return data ? rowToProfile(data as ProfileRow) : null;
 }
 
 /**

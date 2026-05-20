@@ -4,37 +4,8 @@
 // guardado en base de datos, búsqueda y generación de imágenes.
 
 import { supabase } from "@/integrations/supabase/client";
+import { invokeFunction, fetchFunction } from "@/lib/edge-function-client";
 import type { Recipe } from "@/lib/types";
-
-/**
- * Model: Recipe Service
- * Handles all recipe-related data operations (CRUD + AI generation)
- */
-
-// Clave pública de Supabase para autenticar las llamadas a Edge Functions
-const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-// URL base de las Edge Functions del proyecto
-const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
-
-/**
- * Función interna para invocar una Edge Function de Supabase mediante POST.
- * Recibe el nombre de la función y el cuerpo de la petición.
- * Devuelve la respuesta en formato JSON o lanza un error si la petición falla.
- */
-async function invokeFunction(name: string, body: unknown) {
-  const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${ANON_KEY}`,
-      "apikey": ANON_KEY,
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Error ${res.status} en ${name}`);
-  return res.json();
-}
 
 /**
  * Envía una imagen en base64 a la Edge Function "recognize-ingredients"
@@ -172,7 +143,6 @@ export async function searchRecipes(params: {
   page?: number;
   limit?: number;
 }) {
-  // Construye los parámetros de la URL de búsqueda
   const query = new URLSearchParams();
   if (params.country) query.set("country", params.country);
   if (params.category) query.set("category", params.category);
@@ -181,19 +151,8 @@ export async function searchRecipes(params: {
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
 
-  const url = `${FUNCTIONS_URL}/search-recipes?${query.toString()}`;
-
-  // Obtiene el token de sesión activo para autenticar la petición
   const session = (await supabase.auth.getSession()).data.session;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${session?.access_token || ""}`,
-      apikey: ANON_KEY,
-    },
-  });
-
-  if (!res.ok) throw new Error("Error al buscar recetas");
-  return res.json();
+  return fetchFunction(`search-recipes?${query.toString()}`, session?.access_token ?? "");
 }
 
 /**

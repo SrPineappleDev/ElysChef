@@ -5,7 +5,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
-import { rowToProfile, type Profile, type ProfileRow } from "@/entities/profile";
+import type { Profile } from "@/entities/profile";
+import { fetchProfile } from "@/models/profile-service";
 
 export type { Profile };
 
@@ -46,24 +47,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   /**
-   * Obtiene el perfil del usuario desde la base de datos usando su ID.
-   * Actualiza el estado local con los datos del perfil.
-   */
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-    if (data) setProfile(rowToProfile(data as ProfileRow));
-  };
-
-  /**
    * Recarga el perfil del usuario actualmente autenticado.
    * Útil para reflejar cambios después de actualizaciones del perfil.
    */
   const refreshProfile = async () => {
-    if (session?.user?.id) await fetchProfile(session.user.id);
+    if (session?.user?.id) {
+      const updated = await fetchProfile(session.user.id);
+      if (updated) setProfile(updated);
+    }
   };
 
   // Escucha cambios en el estado de autenticación (login, logout, refresco de token).
@@ -75,7 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(newSession);
         if (newSession?.user) {
           // Se usa setTimeout para evitar un posible deadlock con el cliente de Supabase
-          setTimeout(() => fetchProfile(newSession.user.id), 0);
+          setTimeout(async () => {
+            const p = await fetchProfile(newSession.user.id);
+            if (p) setProfile(p);
+          }, 0);
         } else {
           setProfile(null);
         }

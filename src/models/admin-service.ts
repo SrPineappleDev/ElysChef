@@ -2,6 +2,7 @@
 // Proporciona las queries de agregación para los KPIs del panel de admin.
 
 import { supabase } from "@/integrations/supabase/client";
+import { CREDITS } from "@/lib/credit-config";
 
 export interface UserStats {
   total: number;
@@ -122,7 +123,7 @@ export async function fetchCreditStats(): Promise<{ totalConsumed: number }> {
 
   let totalConsumed = 0;
   (data || []).forEach((p) => {
-    const initial = p.plan === "vip" ? 500 : 200;
+    const initial = p.plan === "vip" ? CREDITS.INITIAL_VIP : CREDITS.INITIAL_FREE;
     totalConsumed += Math.max(0, initial - p.credits);
   });
 
