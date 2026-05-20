@@ -9,7 +9,7 @@ const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
  * Invoca una Edge Function mediante POST con la clave anónima.
  * Usado para operaciones de IA que no requieren sesión de usuario.
  */
-export async function invokeFunction(name: string, body: unknown): Promise<unknown> {
+export async function invokeFunction(name: string, body: unknown): Promise<any> {
   const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
     method: "POST",
     headers: {
@@ -27,7 +27,7 @@ export async function invokeFunction(name: string, body: unknown): Promise<unkno
  * Llama a una Edge Function mediante GET con el token de sesión del usuario.
  * Usado para operaciones que requieren autenticación (ej: búsqueda de recetas).
  */
-export async function fetchFunction(path: string, accessToken: string): Promise<unknown> {
+export async function fetchFunction(path: string, accessToken: string): Promise<any> {
   const res = await fetch(`${FUNCTIONS_URL}/${path}`, {
     headers: {
       "Authorization": `Bearer ${accessToken}`,

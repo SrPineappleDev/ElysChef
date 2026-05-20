@@ -30,7 +30,7 @@ export interface AdminProfile {
   email: string;
   plan: string;
   credits: number;
-  created_at: string;
+  created_at: string | null;
 }
 
 /** Obtiene estadísticas de usuarios (total, free, VIP, nuevos esta semana). */
@@ -46,7 +46,7 @@ export async function fetchUserStats(): Promise<UserStats> {
 
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  const newThisWeek = data?.filter((p) => new Date(p.created_at) > oneWeekAgo).length || 0;
+  const newThisWeek = data?.filter((p) => p.created_at && new Date(p.created_at) > oneWeekAgo).length || 0;
 
   return { total, free, vip, newThisWeek };
 }
