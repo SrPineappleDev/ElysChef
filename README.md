@@ -69,6 +69,7 @@ src/
 ├── entities/        # Tipos de dominio derivados del esquema de BD y funciones de mapping
 ├── hooks/           # Hooks de infraestructura (autenticación, responsive)
 ├── integrations/    # Configuración del cliente Supabase y tipos generados
+├── test/            # Datos de prueba y configuración de Vitest
 └── lib/
     ├── types.ts                 # Tipos globales de la app
     ├── utils.ts                 # Utilidades generales
@@ -76,8 +77,7 @@ src/
     ├── edge-function-client.ts  # Cliente HTTP centralizado para las Edge Functions de Supabase
     ├── ai-service.ts            # Integración con la API de Groq
     ├── pdf-generator.ts         # Generación de PDFs de recetas con jsPDF
-    ├── traducir-error-auth.ts   # Traduce los mensajes de error de Supabase Auth al español
-    └── mock-recipes.ts          # Recetas de ejemplo para desarrollo y tests
+    └── auth-error-translator.ts # Traduce los mensajes de error de Supabase Auth al español
 ```
 
 ### Flujo de datos
