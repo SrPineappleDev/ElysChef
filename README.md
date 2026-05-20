@@ -51,7 +51,7 @@ Introduce los ingredientes que tienes en casa — por texto o fotografía — y 
 
 ## Arquitectura del proyecto
 
-La aplicación sigue un patrón **MVC adaptado a React** con separación clara de responsabilidades:
+La aplicación sigue un patrón **MVC adaptado a React** con separación clara de responsabilidades en cuatro capas:
 
 ```
 src/
@@ -60,10 +60,19 @@ src/
 │   └── ui/          # Librería de componentes base (shadcn/ui)
 ├── controllers/     # Custom hooks con lógica de negocio (recipe-generator, auth, favorites…)
 ├── models/          # Servicios de acceso a datos y llamadas a APIs externas
+├── entities/        # Tipos de dominio derivados del esquema de BD y funciones de mapping
 ├── hooks/           # Hooks de infraestructura (autenticación, responsive)
 ├── integrations/    # Configuración del cliente Supabase y tipos generados
-└── lib/             # Tipos globales y utilidades
+└── lib/             # Tipos globales de la app y utilidades
 ```
+
+### Flujo de datos
+
+```
+BD (Supabase) → entities/ (mappers) → models/ (servicios) → controllers/ (hooks) → pages/components/
+```
+
+La capa `entities/` actúa como contrato entre el esquema de base de datos y el dominio de la aplicación: cada entidad expone un tipo `Row` derivado directamente de los tipos generados de Supabase y una función `rowToX()` que convierte filas de BD al tipo de dominio. Esto garantiza que cualquier cambio en el esquema rompa en tiempo de compilación antes de llegar a la UI.
 
 **Decisiones de diseño relevantes:**
 - **Lazy loading** con `React.lazy` + `Suspense` para reducir el bundle inicial
@@ -71,6 +80,7 @@ src/
 - **Rutas protegidas** (`ProtectedRoute`) y de administrador (`AdminRoute`) con redirección automática
 - **React Query** para caché de catálogos y datos del servidor, evitando peticiones redundantes
 - **Race condition guard** en la generación de recetas mediante un contador de versión por referencia
+- **RLS por roles** en Supabase: los catálogos (países, categorías, dietas, alergias) solo los puede modificar un usuario con `role = 'admin'`
 
 ---
 
