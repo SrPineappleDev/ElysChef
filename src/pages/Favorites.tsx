@@ -4,11 +4,13 @@
 // Indica el límite de favoritos del plan gratuito (máximo 10).
 
 import { useState } from "react";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, Download } from "lucide-react";
 import RecipeCard from "@/components/RecipeCard";
 import RecipeDetail from "@/components/RecipeDetail";
+import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/controllers/use-favorites-controller";
 import { useAuth } from "@/hooks/use-auth";
+import { downloadRecipePdf, downloadAllFavoritesPdf } from "@/lib/pdf-generator";
 import type { Recipe } from "@/lib/types";
 
 /**
@@ -23,6 +25,9 @@ const Favorites = () => {
   // Receta seleccionada para ver su detalle; null muestra la lista
   const [selected, setSelected] = useState<Recipe | null>(null);
 
+  // Solo VIP y admin pueden descargar PDFs
+  const canDownload = profile?.plan === "vip" || profile?.role === "admin";
+
   // Vista de detalle de una receta seleccionada
   if (selected) {
     return (
@@ -32,6 +37,7 @@ const Favorites = () => {
           onBack={() => setSelected(null)}
           onToggleFavorite={() => toggleFavorite(selected)}
           isFavorite={isFavorite(selected.id)}
+          onDownloadPdf={canDownload ? () => downloadRecipePdf(selected) : undefined}
         />
       </div>
     );
@@ -51,6 +57,18 @@ const Favorites = () => {
             </span>
           )}
         </p>
+        {/* Botón de descarga masiva solo para VIP y admin con al menos una receta */}
+        {canDownload && favorites.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-display font-semibold"
+            onClick={() => downloadAllFavoritesPdf(favorites)}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Descargar todas en PDF
+          </Button>
+        )}
       </div>
 
       {/* Estado de carga: spinner centrado */}

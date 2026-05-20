@@ -3,7 +3,7 @@
 // desglose calórico por ingrediente, lista de ingredientes, pasos de preparación
 // y botón para añadir o quitar de favoritos.
 
-import { ArrowLeft, Clock, Flame, Users, Heart, ChefHat, MapPin, Tag } from "lucide-react";
+import { ArrowLeft, Clock, Flame, Users, Heart, ChefHat, MapPin, Tag, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Recipe } from "@/lib/types";
@@ -14,6 +14,7 @@ interface RecipeDetailProps {
   onBack: () => void;                      // Callback para volver a la lista de recetas
   onToggleFavorite: (id: string) => void;  // Callback para añadir/quitar de favoritos
   isFavorite: boolean;                     // True si la receta está en favoritos
+  onDownloadPdf?: () => void;              // Solo disponible para usuarios VIP y admin
 }
 
 /**
@@ -21,7 +22,7 @@ interface RecipeDetailProps {
  * Organizada en secciones: cabecera con imagen, cuadrícula nutricional,
  * calorías por ingrediente, lista de ingredientes y pasos de preparación.
  */
-const RecipeDetail = ({ recipe, onBack, onToggleFavorite, isFavorite }: RecipeDetailProps) => {
+const RecipeDetail = ({ recipe, onBack, onToggleFavorite, isFavorite, onDownloadPdf }: RecipeDetailProps) => {
   return (
     <div className="animate-fade-in space-y-6">
       {/* Botón para volver a la lista anterior */}
@@ -125,15 +126,28 @@ const RecipeDetail = ({ recipe, onBack, onToggleFavorite, isFavorite }: RecipeDe
         </ol>
       </div>
 
-      {/* Botón para añadir o quitar la receta de favoritos */}
-      <Button
-        onClick={() => onToggleFavorite(recipe.id)}
-        variant={isFavorite ? "destructive" : "outline"}
-        className="w-full h-12 font-display font-semibold"
-      >
-        <Heart className={`w-5 h-5 mr-2 ${isFavorite ? "fill-current" : ""}`} />
-        {isFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
-      </Button>
+      {/* Botones de acción: favoritos y descarga PDF (solo VIP/admin) */}
+      <div className="flex flex-col gap-3">
+        <Button
+          onClick={() => onToggleFavorite(recipe.id)}
+          variant={isFavorite ? "destructive" : "outline"}
+          className="w-full h-12 font-display font-semibold"
+        >
+          <Heart className={`w-5 h-5 mr-2 ${isFavorite ? "fill-current" : ""}`} />
+          {isFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+        </Button>
+
+        {onDownloadPdf && (
+          <Button
+            onClick={onDownloadPdf}
+            variant="outline"
+            className="w-full h-12 font-display font-semibold border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            Descargar receta en PDF
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
