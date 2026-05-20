@@ -11,7 +11,7 @@ import * as favoritesService from "@/models/favorites-service";
 import { CREDITS } from "@/lib/credit-config";
 import * as allergyService from "@/models/allergy-service";
 import type { Allergy } from "@/models/allergy-service";
-import { traducirErrorAuth } from "@/lib/traducir-error-auth";
+import { traducirErrorAuth } from "@/lib/auth-error-translator";
 
 /**
  * Controller: Profile

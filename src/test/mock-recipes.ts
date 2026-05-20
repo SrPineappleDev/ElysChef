@@ -1,10 +1,5 @@
-// Datos de recetas de ejemplo (mock data).
-// Se usan para pruebas o como contenido de demostración cuando no hay recetas generadas.
-// Incluye recetas de distintos países y categorías con información nutricional completa.
+import type { Recipe } from "@/lib/types";
 
-import type { Recipe } from "./types";
-
-// Array con recetas de muestra listas para usar sin llamar a la API
 export const mockRecipes: Recipe[] = [
   {
     id: "1",
@@ -18,7 +13,6 @@ export const mockRecipes: Recipe[] = [
     fat: "24g",
     country: "España",
     category: "almuerzo",
-    // Desglose calórico por cada ingrediente principal
     calories_per_ingredient: {
       "Aguacate": 160,
       "Tomate": 40,
@@ -117,10 +111,6 @@ export const mockRecipes: Recipe[] = [
   },
 ];
 
-/**
- * Devuelve las recetas de muestra si hay al menos un ingrediente en la lista.
- * Si la lista está vacía, devuelve un array vacío.
- */
 export function getRecipesForIngredients(ingredients: string[]): Recipe[] {
   if (ingredients.length === 0) return [];
   return mockRecipes;

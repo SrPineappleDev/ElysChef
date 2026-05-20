@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as authService from "@/models/auth-service";
-import { traducirErrorAuth } from "@/lib/traducir-error-auth";
+import { traducirErrorAuth } from "@/lib/auth-error-translator";
 
 /**
  * Controller: Auth
