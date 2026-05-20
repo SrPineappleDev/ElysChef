@@ -11,9 +11,9 @@ Introduce los ingredientes que tienes en casa — por texto o fotografía — y 
 
 **[elys-chef.vercel.app](https://elys-chef.vercel.app)**
 
-| Pantalla principal | Generación de recetas |
-|---|---|
-| ![Landing](./screenshots/demo1.jpg) | ![Recetas](./screenshots/demo2.png) |
+| Pantalla principal | Generación de recetas | Panel de administración |
+|---|---|---|
+| ![Landing](./screenshots/demo1.jpg) | ![Recetas](./screenshots/demo2.png) | ![Admin](./screenshots/demo3.png) |
 
 ---
 
