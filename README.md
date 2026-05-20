@@ -27,7 +27,7 @@ Introduce los ingredientes que tienes en casa — por texto o fotografía — y 
 - **Sistema de alergias (VIP)** — la IA excluye ingredientes según tus alergias registradas
 - **Favoritos** — guarda y consulta tus recetas favoritas
 - **Descarga en PDF** — exporta cualquier receta en formato PDF
-- **Sistema de créditos** — plan gratuito y plan VIP con más funcionalidades
+- **Sistema de créditos** — plan gratuito (200 créditos) y plan VIP (500 créditos); generar recetas cuesta 50 créditos y analizar una imagen 25
 - **Panel de administración** — gestión de usuarios, catálogos y configuración del sistema
 
 ---
@@ -58,12 +58,26 @@ src/
 ├── pages/           # Vistas principales (Index, Analyze, Favorites, Profile, Admin, Auth)
 ├── components/      # Componentes reutilizables de UI
 │   └── ui/          # Librería de componentes base (shadcn/ui)
-├── controllers/     # Custom hooks con lógica de negocio (recipe-generator, auth, favorites…)
-├── models/          # Servicios de acceso a datos y llamadas a APIs externas
+├── controllers/     # Custom hooks con lógica de negocio
+│   ├── use-recipe-generator.ts       # Orquestador del flujo completo de generación
+│   ├── use-ingredient-recognition.ts # Reconocimiento de ingredientes por imagen (IA)
+│   ├── use-auth-controller.ts
+│   ├── use-favorites-controller.ts
+│   ├── use-profile-controller.ts
+│   └── use-admin-controller.ts
+├── models/          # Servicios de acceso a datos (Supabase queries)
 ├── entities/        # Tipos de dominio derivados del esquema de BD y funciones de mapping
 ├── hooks/           # Hooks de infraestructura (autenticación, responsive)
 ├── integrations/    # Configuración del cliente Supabase y tipos generados
-└── lib/             # Tipos globales de la app y utilidades
+└── lib/
+    ├── types.ts                 # Tipos globales de la app
+    ├── utils.ts                 # Utilidades generales
+    ├── credit-config.ts         # Constantes del sistema de créditos (coste por operación, créditos iniciales por plan)
+    ├── edge-function-client.ts  # Cliente HTTP centralizado para las Edge Functions de Supabase
+    ├── ai-service.ts            # Integración con la API de Groq
+    ├── pdf-generator.ts         # Generación de PDFs de recetas con jsPDF
+    ├── traducir-error-auth.ts   # Traduce los mensajes de error de Supabase Auth al español
+    └── mock-recipes.ts          # Recetas de ejemplo para desarrollo y tests
 ```
 
 ### Flujo de datos
@@ -81,6 +95,11 @@ La capa `entities/` actúa como contrato entre el esquema de base de datos y el 
 - **React Query** para caché de catálogos y datos del servidor, evitando peticiones redundantes
 - **Race condition guard** en la generación de recetas mediante un contador de versión por referencia
 - **RLS por roles** en Supabase: los catálogos (países, categorías, dietas, alergias) solo los puede modificar un usuario con `role = 'admin'`
+- **Principios SOLID aplicados:**
+  - *SRP* — el reconocimiento de imagen tiene su propio hook (`use-ingredient-recognition`), separado del orquestador de generación
+  - *DIP* — `use-auth` delega la carga de perfil al `profile-service` en lugar de consultar Supabase directamente
+  - *OCP* — los costes de créditos se centralizan en `credit-config.ts`, un único punto de cambio sin tocar la lógica
+  - *ISP* — las llamadas HTTP a Edge Functions se encapsulan en `edge-function-client.ts`, separándolas de los servicios de dominio
 
 ---
 
