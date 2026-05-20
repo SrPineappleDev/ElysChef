@@ -24,6 +24,8 @@ export interface Recipe {
   steps: string[];
   country?: string;       // País de origen de la receta (opcional)
   category?: string;      // Categoría de la receta (opcional)
+  diet?: string;          // Tipo de dieta de la receta (opcional)
+  description?: string;   // Descripción breve de la receta (opcional)
   calories_per_ingredient?: Record<string, number>; // Calorías desglosadas por ingrediente
   imageQuery?: string;    // Término de búsqueda para generar la imagen con IA
 }

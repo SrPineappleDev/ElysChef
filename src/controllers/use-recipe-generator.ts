@@ -4,6 +4,7 @@
 // Aplica el límite de recetas según el plan del usuario (1 para free, 3 para VIP).
 
 import { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -33,8 +34,9 @@ export function useRecipeGenerator() {
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selected, setSelected] = useState<Recipe | null>(null);
-  const [isLoading, setIsLoading] = useState(false);       // Generación de recetas en curso
-  const [isRecognizing, setIsRecognizing] = useState(false); // Reconocimiento de imagen en curso
+  const [isLoading, setIsLoading] = useState(false);
+  const [generationStep, setGenerationStep] = useState<string | null>(null);
+  const [isRecognizing, setIsRecognizing] = useState(false);
   const [country, setCountry] = useState("all");
   const [category, setCategory] = useState("all");
   const [diet, setDiet] = useState("all");
@@ -44,10 +46,14 @@ export function useRecipeGenerator() {
   // Alergias del usuario VIP (nombres para enviar a la IA)
   const [userAllergyNames, setUserAllergyNames] = useState<string[]>([]);
 
-  // Catálogos activos para restringir la IA a los valores permitidos
-  const [activeCountries, setActiveCountries] = useState<string[]>([]);
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
-  const [activeDiets, setActiveDiets] = useState<string[]>([]);
+  // Catálogos activos cacheados con React Query (stale 5 min, no se refetcha en cada mount)
+  const { data: countriesData } = useQuery({ queryKey: ["catalog-countries"], queryFn: fetchCountries, staleTime: 5 * 60 * 1000 });
+  const { data: categoriesData } = useQuery({ queryKey: ["catalog-categories"], queryFn: fetchCategories, staleTime: 5 * 60 * 1000 });
+  const { data: dietsData } = useQuery({ queryKey: ["catalog-diets"], queryFn: fetchDiets, staleTime: 5 * 60 * 1000 });
+
+  const activeCountries = countriesData?.map((c) => c.name) ?? [];
+  const activeCategories = categoriesData?.map((c) => c.value) ?? [];
+  const activeDiets = dietsData?.map((d) => d.value) ?? [];
 
   // Carga las alergias del usuario VIP al montar el componente
   useEffect(() => {
@@ -56,13 +62,6 @@ export function useRecipeGenerator() {
       .then((list) => setUserAllergyNames(list.map((a) => a.name)))
       .catch(() => {});
   }, [profile?.plan, profile?.id]);
-
-  // Carga los catálogos activos al montar para pasarlos al prompt de la IA
-  useEffect(() => {
-    fetchCountries().then((list) => setActiveCountries(list.map((c) => c.name))).catch(() => {});
-    fetchCategories().then((list) => setActiveCategories(list.map((c) => c.value))).catch(() => {});
-    fetchDiets().then((list) => setActiveDiets(list.map((d) => d.value))).catch(() => {});
-  }, []);
 
   // Número de recetas a generar: solo VIP puede elegir entre 1-3; free siempre 1
   const [recipeCount, setRecipeCount] = useState<1 | 2 | 3>(1);
@@ -89,7 +88,8 @@ export function useRecipeGenerator() {
     const generationId = ++generationIdRef.current;
     setIsLoading(true);
     try {
-      // Prepara los filtros, ignorando el valor "all" (sin filtro)
+      // Paso 1: llamada a la IA
+      setGenerationStep("Generando recetas con IA...");
       const filters = {
         country: country !== "all" ? country : undefined,
         category: category !== "all" ? category : undefined,
@@ -105,13 +105,19 @@ export function useRecipeGenerator() {
       const effectiveCount = profile?.plan === "vip" ? recipeCount : 1;
       const limited = result.slice(0, effectiveCount);
 
-      // Guarda las recetas en la base de datos si el usuario está autenticado
-      let savedRecipes: Recipe[] = [];
+      // Avisa si no se generaron recetas
+      if (limited.length === 0) {
+        toast.warning("No se pudieron generar recetas. Intenta con otros ingredientes.");
+        setIsLoading(false);
+        setGenerationStep(null);
+        return;
+      }
+
+      // Paso 2: guardar en base de datos
+      setGenerationStep("Guardando recetas...");
+      let savedRecipes: Recipe[];
       if (user) {
-        for (const r of limited) {
-          const saved = await saveRecipe(user.id, r, filters.diet);
-          savedRecipes.push(saved);
-        }
+        savedRecipes = await Promise.all(limited.map((r) => saveRecipe(user.id, r, filters.diet)));
       } else {
         savedRecipes = limited;
       }
@@ -123,16 +129,9 @@ export function useRecipeGenerator() {
       }
 
       setRecipes(savedRecipes);
-      setIsLoading(false);
 
-      // Avisa si no se generaron recetas
-      if (limited.length === 0) {
-        toast.warning("No se pudieron generar recetas. Intenta con otros ingredientes.");
-        return;
-      }
-
-      // Genera las imágenes de todas las recetas en paralelo
-      toast.info("Generando imágenes con IA...");
+      // Paso 3: generar imágenes
+      setGenerationStep("Generando imágenes con IA...");
       const imagePromises = savedRecipes.map(async (r, idx) => {
         const image = await generateRecipeImage(r.title, r.imageQuery);
         return { idx, image };
@@ -155,15 +154,19 @@ export function useRecipeGenerator() {
 
       // Persiste las imágenes generadas en la base de datos
       if (user) {
-        for (const { idx, image } of images) {
-          if (image && savedRecipes[idx]) {
-            await updateRecipeImage(savedRecipes[idx].id, image);
-          }
-        }
+        await Promise.all(
+          images
+            .filter(({ image, idx }) => image && savedRecipes[idx])
+            .map(({ idx, image }) => updateRecipeImage(savedRecipes[idx].id, image!))
+        );
       }
+
+      setIsLoading(false);
+      setGenerationStep(null);
     } catch (e: any) {
       toast.error(e.message || "Error al generar recetas");
       setIsLoading(false);
+      setGenerationStep(null);
     }
   };
 
@@ -183,9 +186,9 @@ export function useRecipeGenerator() {
 
     setIsRecognizing(true);
     try {
-      // Convierte la imagen a base64 para enviarla a la Edge Function
-      const base64 = await fileToBase64(file);
-      const detected = await recognizeIngredientsFromImage(base64);
+      // Convierte la imagen a base64 preservando el tipo MIME real del archivo
+      const { base64, mimeType } = await fileToBase64(file);
+      const detected = await recognizeIngredientsFromImage(base64, mimeType);
 
       // Deduce créditos tras análisis exitoso
       if (profile && user) {
@@ -213,6 +216,7 @@ export function useRecipeGenerator() {
     selected,
     setSelected,
     isLoading,
+    generationStep,
     isRecognizing,
     country,
     setCountry,

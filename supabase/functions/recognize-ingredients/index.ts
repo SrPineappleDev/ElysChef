@@ -1,64 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callGroq, corsHeaders, QuotaExhaustedError, ModelUnavailableError, QUOTA_ERROR_MSG, UNAVAILABLE_ERROR_MSG } from "../_shared/groq.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
-
-class QuotaExhaustedError extends Error {
-  constructor() { super("DAILY_QUOTA"); }
-}
-
-class ModelUnavailableError extends Error {
-  constructor() { super("MODEL_UNAVAILABLE"); }
-}
-
-// Llama a Groq con reintentos ante rate limit (backoff 2s→4s→8s).
-async function callGroq(apiKey: string, messages: unknown[], maxRetries = 3): Promise<Response> {
-  let lastStatus = 0;
-  let lastBody = "";
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const res = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ model: GROQ_VISION_MODEL, messages, temperature: 0.2 }),
-    });
-
-    if (res.ok) return res;
-
-    lastStatus = res.status;
-    lastBody = await res.text();
-
-    if (lastStatus === 429) {
-      const isDaily = lastBody.includes("day") || lastBody.includes("daily") || lastBody.includes("tokens_per_day");
-      if (isDaily) throw new QuotaExhaustedError();
-      if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, Math.pow(2, attempt + 1) * 1000));
-        continue;
-      }
-    }
-
-    if (lastStatus === 503 || lastStatus === 502) {
-      if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, Math.pow(2, attempt + 1) * 1000));
-        continue;
-      }
-      throw new ModelUnavailableError();
-    }
-
-    break;
-  }
-
-  return new Response(lastBody, { status: lastStatus });
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -70,7 +13,7 @@ serve(async (req) => {
     });
 
   try {
-    const { imageBase64 } = await req.json();
+    const { imageBase64, mimeType = "image/jpeg" } = await req.json();
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
 
@@ -81,7 +24,7 @@ serve(async (req) => {
           {
             type: "image_url",
             image_url: {
-              url: `data:image/jpeg;base64,${imageBase64}`,
+              url: `data:${mimeType};base64,${imageBase64}`,
             },
           },
           {
@@ -96,14 +39,10 @@ Usa nombres en español. Sé específico (ej: "tomate cherry" en vez de solo "to
 
     let response: Response;
     try {
-      response = await callGroq(GROQ_API_KEY, messages);
+      response = await callGroq(GROQ_API_KEY, { model: GROQ_VISION_MODEL, messages, temperature: 0.2 });
     } catch (err) {
-      if (err instanceof QuotaExhaustedError) {
-        return json({ error: "Se ha agotado la cuota diaria de la IA. La cuota se restablece automáticamente cada día. Inténtalo mañana o contacta con el administrador." });
-      }
-      if (err instanceof ModelUnavailableError) {
-        return json({ error: "La IA está experimentando alta demanda en este momento. Espera unos segundos e inténtalo de nuevo." });
-      }
+      if (err instanceof QuotaExhaustedError) return json({ error: QUOTA_ERROR_MSG });
+      if (err instanceof ModelUnavailableError) return json({ error: UNAVAILABLE_ERROR_MSG });
       throw err;
     }
 

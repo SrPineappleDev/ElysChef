@@ -74,7 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (session?.user?.id) await fetchProfile(session.user.id);
   };
 
-  // Escucha cambios en el estado de autenticación (login, logout, refresco de token)
+  // Escucha cambios en el estado de autenticación (login, logout, refresco de token).
+  // onAuthStateChange dispara INITIAL_SESSION al montar con la sesión existente,
+  // por lo que no hace falta llamar a getSession() por separado para cargar el perfil.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
@@ -83,19 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Se usa setTimeout para evitar un posible deadlock con el cliente de Supabase
           setTimeout(() => fetchProfile(newSession.user.id), 0);
         } else {
-          // Si no hay sesión, se limpia el perfil
           setProfile(null);
         }
         setLoading(false);
       }
     );
-
-    // Comprueba si ya hay una sesión activa al cargar la aplicación
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      if (s?.user) fetchProfile(s.user.id);
-      setLoading(false);
-    });
 
     // Cancela la suscripción al desmontar el componente
     return () => subscription.unsubscribe();

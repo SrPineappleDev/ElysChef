@@ -83,6 +83,11 @@ const RecipeCard = ({ recipe, onToggleFavorite, isFavorite }: RecipeCardProps) =
           )}
         </div>
 
+        {/* Descripción breve de la receta */}
+        {recipe.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">{recipe.description}</p>
+        )}
+
         {/* Tiempo de preparación y número de porciones */}
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">

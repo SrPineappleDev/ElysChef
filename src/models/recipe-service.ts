@@ -41,8 +41,8 @@ async function invokeFunction(name: string, body: unknown) {
  * para detectar los ingredientes visibles en ella con IA.
  * Devuelve un array de nombres de ingredientes detectados.
  */
-export async function recognizeIngredientsFromImage(imageBase64: string): Promise<string[]> {
-  const data = await invokeFunction("recognize-ingredients", { imageBase64 });
+export async function recognizeIngredientsFromImage(imageBase64: string, mimeType = "image/jpeg"): Promise<string[]> {
+  const data = await invokeFunction("recognize-ingredients", { imageBase64, mimeType });
   if (data?.error) throw new Error(data.error);
   return data?.ingredients || [];
 }
@@ -117,10 +117,12 @@ async function resolveCatalogId(table: "countries" | "categories" | "diets", fie
  */
 export async function saveRecipe(userId: string, recipe: Recipe, diet?: string): Promise<Recipe> {
   // Resolver IDs del catálogo en paralelo
+  const effectiveDiet = diet || recipe.diet || "";
+
   const [country_id, category_id, diet_id] = await Promise.all([
     resolveCatalogId("countries", "name", recipe.country || ""),
     resolveCatalogId("categories", "value", recipe.category || ""),
-    resolveCatalogId("diets", "value", diet || ""),
+    resolveCatalogId("diets", "value", effectiveDiet),
   ]);
 
   const { data } = await supabase.from("recipes").insert({
@@ -138,7 +140,7 @@ export async function saveRecipe(userId: string, recipe: Recipe, diet?: string):
     steps: recipe.steps as any,
     country: recipe.country || "",
     category: recipe.category || "",
-    diet: diet || "",
+    diet: effectiveDiet,
     country_id,
     category_id,
     diet_id,
@@ -179,15 +181,14 @@ export async function searchRecipes(params: {
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
 
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const url = `https://${projectId}.supabase.co/functions/v1/search-recipes?${query.toString()}`;
+  const url = `${FUNCTIONS_URL}/search-recipes?${query.toString()}`;
 
   // Obtiene el token de sesión activo para autenticar la petición
   const session = (await supabase.auth.getSession()).data.session;
   const res = await fetch(url, {
     headers: {
       authorization: `Bearer ${session?.access_token || ""}`,
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      apikey: ANON_KEY,
     },
   });
 
@@ -196,17 +197,18 @@ export async function searchRecipes(params: {
 }
 
 /**
- * Convierte un archivo de imagen (File) a una cadena base64.
- * Lee el archivo con FileReader y extrae solo la parte de datos (sin el prefijo data:...).
- * Devuelve una promesa que resuelve con el string base64.
+ * Convierte un archivo de imagen (File) a base64, preservando el tipo MIME real del archivo.
+ * Devuelve tanto el string base64 (sin prefijo) como el mimeType para enviarlo a la Edge Function.
  */
-export function fileToBase64(file: File): Promise<string> {
+export function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      // Elimina el prefijo "data:image/...;base64," para obtener solo los datos
-      resolve(result.split(",")[1]);
+      const [prefix, base64] = result.split(",");
+      // Extrae el mimeType del prefijo "data:image/png;base64"
+      const mimeType = prefix.split(":")[1]?.split(";")[0] || file.type || "image/jpeg";
+      resolve({ base64, mimeType });
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);

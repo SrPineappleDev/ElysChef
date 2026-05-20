@@ -24,7 +24,7 @@ const Analyze = () => {
   const {
     ingredients, setIngredients,
     recipes, selected, setSelected,
-    isLoading, isRecognizing,
+    isLoading, generationStep, isRecognizing,
     country, setCountry,
     category, setCategory,
     diet, setDiet,
@@ -143,6 +143,14 @@ const Analyze = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Indicador de progreso durante la generación */}
+      {isLoading && generationStep && (
+        <div className="mt-6 flex items-center justify-center gap-3 text-sm text-muted-foreground animate-fade-in">
+          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <span>{generationStep}</span>
+        </div>
+      )}
 
       {/* Cuadrícula de recetas generadas por la IA */}
       {recipes.length > 0 && (
