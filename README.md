@@ -29,6 +29,7 @@ Introduce los ingredientes que tienes en casa — por texto o fotografía — y 
 - **Descarga en PDF** — exporta cualquier receta en formato PDF
 - **Sistema de créditos** — plan gratuito (200 créditos) y plan VIP (500 créditos); generar recetas cuesta 50 créditos y analizar una imagen 25
 - **Panel de administración** — gestión de usuarios, catálogos y configuración del sistema
+- **Exportación a Excel** — el administrador puede descargar un informe `.xlsx` con KPIs, estadísticas de usuarios, distribución por países, categorías, dietas y alergias
 
 ---
 
@@ -44,6 +45,7 @@ Introduce los ingredientes que tienes en casa — por texto o fotografía — y 
 | **Backend / Base de datos** | Supabase (PostgreSQL + Auth + Storage) |
 | **Inteligencia Artificial** | Groq API (generación de recetas e imágenes, reconocimiento de ingredientes) |
 | **Exportación PDF** | jsPDF |
+| **Exportación Excel** | xlsx-js-style (SheetJS) |
 | **Testing** | Vitest · Testing Library |
 | **Despliegue** | Vercel |
 
@@ -101,6 +103,7 @@ src/
     ├── edge-function-client.ts  # Cliente HTTP centralizado para las Edge Functions de Supabase
     ├── ai-service.ts            # Contratos del servicio de IA: IRecipeAIService e IRecognitionAIService
     ├── pdf-generator.ts         # Generación de PDFs de recetas con jsPDF
+    ├── excel-generator.ts       # Generación del informe Excel del panel de administración (6 hojas)
     └── auth-error-translator.ts # Traduce los mensajes de error de Supabase Auth al español
 ```
 
