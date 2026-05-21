@@ -54,8 +54,19 @@ Introduce los ingredientes que tienes en casa — por texto o fotografía — y 
 La aplicación sigue un patrón **MVC adaptado a React** con separación clara de responsabilidades en cuatro capas:
 
 ```
+supabase/
+├── functions/                         # Edge Functions Deno (backend serverless)
+│   ├── generate-recipes/              # Generación de recetas con Groq (Llama-3.3-70b)
+│   ├── recognize-ingredients/         # Reconocimiento de ingredientes por imagen (Llama 4 Scout)
+│   ├── generate-recipe-image/         # Búsqueda de imágenes en Pexels
+│   ├── search-recipes/                # Búsqueda y filtrado de recetas en BD
+│   └── _shared/
+│       ├── groq.ts                    # Cliente Groq con reintentos exponenciales
+│       └── credits.ts                 # Validación y deducción de créditos
+└── migrations/                        # Migraciones PostgreSQL
+
 src/
-├── pages/           # Vistas principales (Index, Analyze, Favorites, Profile, Admin, Auth)
+├── pages/           # Vistas principales (Index, Analyze, Favorites, Profile, Admin, Auth, NotFound)
 ├── components/      # Componentes reutilizables de UI
 │   └── ui/          # Librería de componentes base (shadcn/ui)
 ├── controllers/     # Custom hooks con lógica de negocio
@@ -65,9 +76,22 @@ src/
 │   ├── use-favorites-controller.ts
 │   ├── use-profile-controller.ts
 │   └── use-admin-controller.ts
-├── models/          # Servicios de acceso a datos (Supabase queries)
-├── entities/        # Tipos de dominio derivados del esquema de BD y funciones de mapping
-├── hooks/           # Hooks de infraestructura (autenticación, responsive)
+├── models/          # Servicios de acceso a datos y llamadas a Edge Functions
+│   ├── recipe-ai-service.ts  # Llamadas a Edge Functions de IA (generación, reconocimiento, imágenes)
+│   ├── recipe-service.ts     # Consultas de recetas en BD
+│   ├── favorites-service.ts  # CRUD de favoritos
+│   ├── profile-service.ts    # Consultas de perfil de usuario
+│   ├── auth-service.ts       # Operaciones de autenticación
+│   ├── catalog-service.ts    # Catálogos (países, categorías, dietas, alergias)
+│   ├── allergy-service.ts    # Gestión de alergias del usuario
+│   └── admin-service.ts      # Operaciones y KPIs de administración
+├── entities/        # Tipos de dominio y funciones de mapping (BD y respuestas de IA)
+│   ├── recipe.ts    # Mapper rowToRecipe (fila BD → tipo Recipe)
+│   ├── profile.ts   # Mapper rowToProfile (fila BD → tipo Profile)
+│   ├── catalog.ts   # Tipos de catálogo
+│   ├── allergy.ts   # Tipos de alergias
+│   └── ia.ts        # Tipos de petición/respuesta de IA y mapper aiRecipeRawToRecipe (salida Groq → Recipe)
+├── hooks/           # Hooks de infraestructura (autenticación, responsive, toast, favoritos)
 ├── integrations/    # Configuración del cliente Supabase y tipos generados
 ├── test/            # Datos de prueba y configuración de Vitest
 └── lib/
@@ -75,7 +99,7 @@ src/
     ├── utils.ts                 # Utilidades generales
     ├── credit-config.ts         # Constantes del sistema de créditos (coste por operación, créditos iniciales por plan)
     ├── edge-function-client.ts  # Cliente HTTP centralizado para las Edge Functions de Supabase
-    ├── ai-service.ts            # Integración con la API de Groq
+    ├── ai-service.ts            # Contratos del servicio de IA: IRecipeAIService e IRecognitionAIService
     ├── pdf-generator.ts         # Generación de PDFs de recetas con jsPDF
     └── auth-error-translator.ts # Traduce los mensajes de error de Supabase Auth al español
 ```
@@ -83,10 +107,11 @@ src/
 ### Flujo de datos
 
 ```
-BD (Supabase) → entities/ (mappers) → models/ (servicios) → controllers/ (hooks) → pages/components/
+Edge Functions (Groq / Pexels) ──┐
+BD (Supabase)                     ├→ entities/ (mappers) → models/ (servicios) → controllers/ (hooks) → pages/components/
 ```
 
-La capa `entities/` actúa como contrato entre el esquema de base de datos y el dominio de la aplicación: cada entidad expone un tipo `Row` derivado directamente de los tipos generados de Supabase y una función `rowToX()` que convierte filas de BD al tipo de dominio. Esto garantiza que cualquier cambio en el esquema rompa en tiempo de compilación antes de llegar a la UI.
+La capa `entities/` actúa como contrato entre el esquema de base de datos, las respuestas de las Edge Functions de IA y el dominio de la aplicación. Los mappers de BD (`rowToX()`) convierten filas de Supabase al tipo de dominio; el mapper de IA (`aiRecipeRawToRecipe()`) convierte la salida cruda de Groq al mismo tipo `Recipe`. Esto garantiza que cualquier cambio en el esquema o en los contratos de IA rompa en tiempo de compilación antes de llegar a la UI.
 
 **Decisiones de diseño relevantes:**
 - **Lazy loading** con `React.lazy` + `Suspense` para reducir el bundle inicial
@@ -99,7 +124,7 @@ La capa `entities/` actúa como contrato entre el esquema de base de datos y el 
   - *SRP* — el reconocimiento de imagen tiene su propio hook (`use-ingredient-recognition`), separado del orquestador de generación
   - *DIP* — `use-auth` delega la carga de perfil al `profile-service` en lugar de consultar Supabase directamente
   - *OCP* — los costes de créditos se centralizan en `credit-config.ts`, un único punto de cambio sin tocar la lógica
-  - *ISP* — las llamadas HTTP a Edge Functions se encapsulan en `edge-function-client.ts`, separándolas de los servicios de dominio
+  - *ISP* — `lib/ai-service.ts` define `IRecipeAIService` e `IRecognitionAIService` como interfaces separadas, de forma que cada consumidor solo depende de las operaciones que realmente utiliza
 
 ---
 
