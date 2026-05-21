@@ -12,6 +12,9 @@ export default defineConfig(() => ({
     },
   },
   plugins: [react()],
+  optimizeDeps: {
+    include: ["xlsx-js-style"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

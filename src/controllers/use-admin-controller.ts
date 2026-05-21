@@ -9,6 +9,8 @@ import * as allergyService from "@/models/allergy-service";
 import * as catalogService from "@/models/catalog-service";
 import type { Allergy } from "@/models/allergy-service";
 import type { CatalogCountry, CatalogCategory, CatalogDiet } from "@/models/catalog-service";
+import { downloadAdminExcel } from "@/lib/excel-generator";
+import { fetchRecipeCountPerUser } from "@/models/admin-service";
 
 export function useAdminController() {
   const [userStats, setUserStats] = useState<adminService.UserStats | null>(null);
@@ -18,6 +20,8 @@ export function useAdminController() {
   const [profiles, setProfiles] = useState<adminService.AdminProfile[]>([]);
   const [catalog, setCatalog] = useState<Allergy[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   const [newAllergyName, setNewAllergyName] = useState("");
   const [savingAllergy, setSavingAllergy] = useState(false);
@@ -66,6 +70,21 @@ export function useAdminController() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  const handleDownloadExcel = async () => {
+    if (!userStats || !recipeStats || !creditStats) return;
+    setDownloadingExcel(true);
+    try {
+      const recipeCountPerUser = await fetchRecipeCountPerUser();
+      await downloadAdminExcel({ userStats, recipeStats, allergyStats, creditStats, profiles, recipeCountPerUser });
+      toast.success("Informe Excel generado correctamente");
+    } catch (e) {
+      console.error("[Excel] Error:", e);
+      toast.error("Error al generar el Excel");
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
 
   // ─── Alergias ─────────────────────────────────────────────────────────────
 
@@ -239,5 +258,7 @@ export function useAdminController() {
     handleAddDiet,
     handleArchiveDiet,
     handleRestoreDiet,
+    downloadingExcel,
+    handleDownloadExcel,
   };
 }

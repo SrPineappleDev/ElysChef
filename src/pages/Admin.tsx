@@ -2,7 +2,7 @@
 // Muestra KPIs de la aplicación y permite gestionar el catálogo de alergias.
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { Users, ChefHat, Coins, TrendingUp, Trash2, Plus, ShieldCheck, Archive, ArchiveRestore } from "lucide-react";
+import { Users, ChefHat, Coins, TrendingUp, Trash2, Plus, ShieldCheck, Archive, ArchiveRestore, FileSpreadsheet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,8 @@ const Admin = () => {
     handleAddDiet,
     handleArchiveDiet,
     handleRestoreDiet,
+    downloadingExcel,
+    handleDownloadExcel,
   } = useAdminController();
 
   if (loading) {
@@ -77,6 +79,10 @@ const Admin = () => {
       <div className="flex items-center gap-3 mb-8">
         <ShieldCheck className="w-7 h-7 text-primary" />
         <h1 className="font-display font-bold text-3xl text-foreground">Panel de Administración</h1>
+        <Button onClick={handleDownloadExcel} disabled={downloadingExcel} variant="outline" className="ml-auto">
+          <FileSpreadsheet className="w-4 h-4 mr-2" />
+          {downloadingExcel ? "Generando..." : "Descargar Excel"}
+        </Button>
       </div>
 
       {/* KPIs */}

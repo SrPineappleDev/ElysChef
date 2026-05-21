@@ -139,3 +139,12 @@ export async function fetchAllProfiles(): Promise<AdminProfile[]> {
   if (error) throw error;
   return data || [];
 }
+
+/** Devuelve un mapa user_id → nº de recetas generadas. */
+export async function fetchRecipeCountPerUser(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.from("recipes").select("user_id");
+  if (error) throw error;
+  const map: Record<string, number> = {};
+  (data || []).forEach((r) => { map[r.user_id] = (map[r.user_id] || 0) + 1; });
+  return map;
+}
