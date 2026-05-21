@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Recarga el perfil del usuario actualmente autenticado.
-   * Útil para reflejar cambios después de actualizaciones del perfil.
+   * Útil para reflejar cambios después de actualizaciones del perfil o del plan.
    */
   const refreshProfile = async () => {
     if (session?.user?.id) {
@@ -65,7 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (_event, newSession) => {
         setSession(newSession);
         if (newSession?.user) {
-          // Se usa setTimeout para evitar un posible deadlock con el cliente de Supabase
+          // setTimeout evita un posible deadlock en el cliente de Supabase al hacer fetch del perfil
+          // de forma síncrona dentro de onAuthStateChange
           setTimeout(async () => {
             const p = await fetchProfile(newSession.user.id);
             if (p) setProfile(p);

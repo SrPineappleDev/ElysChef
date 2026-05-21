@@ -14,11 +14,6 @@ import {
 import type { Recipe } from "@/lib/types";
 
 /**
- * Controller: Favorites
- * Manages favorites state and operations with plan limits
- */
-
-/**
  * Hook que gestiona los favoritos del usuario autenticado.
  * Carga los favoritos al iniciar, aplica el límite según el plan
  * y expone funciones para consultar si una receta es favorita y alternarla.
@@ -31,7 +26,6 @@ export function useFavorites() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  // Determina si el usuario es VIP y el límite de favoritos aplicable
   const isVip = profile?.plan === "vip";
   const maxFavorites = isVip ? Infinity : 10;
 
@@ -53,14 +47,13 @@ export function useFavorites() {
     setLoading(false);
   }, [user]);
 
-  // Carga los favoritos cuando cambia el usuario
+  // Recarga los favoritos cada vez que cambia el usuario
   useEffect(() => {
     loadFavorites();
   }, [loadFavorites]);
 
   /**
    * Comprueba si una receta está en favoritos por su ID.
-   * Devuelve true si el ID está en el Set de favoritos.
    */
   const isFavorite = (id: string) => favoriteIds.has(id);
 

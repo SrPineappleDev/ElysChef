@@ -1,5 +1,5 @@
-// Modelo de servicio de alergias.
-// Gestiona el catálogo de alergias (admin) y las alergias del usuario (VIP).
+// Servicio de alergias.
+// Gestiona el catálogo de alergias (admin) y las selecciones personales de cada usuario VIP.
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Allergy } from "@/entities/allergy";
@@ -36,7 +36,7 @@ export async function deleteAllergy(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Obtiene las alergias seleccionadas por un usuario. */
+/** Obtiene las alergias seleccionadas por un usuario concreto. */
 export async function fetchUserAllergies(userId: string): Promise<Allergy[]> {
   const { data, error } = await supabase
     .from("user_allergies")
@@ -46,7 +46,7 @@ export async function fetchUserAllergies(userId: string): Promise<Allergy[]> {
   return (data || []).map((row: any) => row.allergies).filter(Boolean);
 }
 
-/** Añade una alergia a la lista del usuario VIP. */
+/** Añade una alergia a la lista personal de un usuario VIP. */
 export async function addUserAllergy(userId: string, allergyId: string): Promise<void> {
   const { error } = await supabase
     .from("user_allergies")
@@ -54,7 +54,7 @@ export async function addUserAllergy(userId: string, allergyId: string): Promise
   if (error) throw error;
 }
 
-/** Elimina una alergia de la lista del usuario. */
+/** Elimina una alergia de la lista personal de un usuario. */
 export async function removeUserAllergy(userId: string, allergyId: string): Promise<void> {
   const { error } = await supabase
     .from("user_allergies")

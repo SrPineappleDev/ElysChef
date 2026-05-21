@@ -1,3 +1,7 @@
+// Generador de PDF para recetas.
+// Construye documentos A4 con diseño de marca ElysChef usando jsPDF.
+// Soporta exportar una receta individual o todas las recetas favoritas en un solo PDF.
+
 import { jsPDF } from "jspdf";
 import type { Recipe } from "@/lib/types";
 
@@ -30,7 +34,7 @@ function drawHeader(doc: jsPDF, pageWidth: number): number {
   doc.setTextColor(255, 220, 190);
   doc.text(formatDate(), pageWidth - 14, 14, { align: "right" });
 
-  return 30; // y inicial del contenido
+  return 30; // posición y inicial del área de contenido
 }
 
 function drawFooter(doc: jsPDF, pageWidth: number, pageHeight: number) {
@@ -88,7 +92,7 @@ function buildRecipePage(doc: jsPDF, recipe: Recipe, startY: number): void {
     y += descLines.length * 5 + 4;
   }
 
-  // Badges info: categoría, país, dieta
+  // Etiquetas: categoría, país, dieta
   const badges = [recipe.category, recipe.country, recipe.diet].filter(Boolean).map(capitalize) as string[];
   if (badges.length) {
     doc.setFont("helvetica", "normal");
@@ -104,7 +108,7 @@ function buildRecipePage(doc: jsPDF, recipe: Recipe, startY: number): void {
   doc.line(margin, y, pageWidth - margin, y);
   y += 6;
 
-  // Ficha rápida: calorías, tiempo, porciones
+  // Datos rápidos: calorías, tiempo, porciones
   const infoItems = [
     { label: "Calorías", value: `${recipe.calories} kcal` },
     { label: "Tiempo",   value: recipe.time },

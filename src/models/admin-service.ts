@@ -1,5 +1,5 @@
-// Modelo de servicio de administración.
-// Proporciona las queries de agregación para los KPIs del panel de admin.
+// Servicio de administración.
+// Proporciona las consultas de agregación para los KPIs del panel de admin.
 
 import { supabase } from "@/integrations/supabase/client";
 import { CREDITS } from "@/lib/credit-config";
@@ -33,7 +33,7 @@ export interface AdminProfile {
   created_at: string | null;
 }
 
-/** Obtiene estadísticas de usuarios (total, free, VIP, nuevos esta semana). */
+/** Obtiene estadísticas de usuarios: total, distribución free/VIP y nuevos registros esta semana. */
 export async function fetchUserStats(): Promise<UserStats> {
   const { data, error } = await supabase
     .from("profiles")
@@ -51,7 +51,7 @@ export async function fetchUserStats(): Promise<UserStats> {
   return { total, free, vip, newThisWeek };
 }
 
-/** Obtiene estadísticas de recetas (total, por categoría, por país y por dieta). */
+/** Obtiene estadísticas de recetas: total desglosado por categoría, país y dieta. */
 export async function fetchRecipeStats(): Promise<RecipeStats> {
   const { data, error } = await supabase
     .from("recipes")
@@ -93,7 +93,7 @@ export async function fetchRecipeStats(): Promise<RecipeStats> {
   return { total, byCategory, byCountry, byDiet };
 }
 
-/** Obtiene las alergias más comunes entre los usuarios. */
+/** Obtiene las alergias más frecuentes entre todos los usuarios. */
 export async function fetchAllergyStats(): Promise<AllergyStats[]> {
   const { data, error } = await supabase
     .from("user_allergies")
@@ -112,8 +112,8 @@ export async function fetchAllergyStats(): Promise<AllergyStats[]> {
 }
 
 /**
- * Estima los créditos totales consumidos.
- * Calcula la diferencia entre los créditos iniciales del plan y los actuales.
+ * Estima los créditos totales consumidos por todos los usuarios.
+ * Calculado como la diferencia entre el saldo inicial de cada plan y el saldo actual.
  */
 export async function fetchCreditStats(): Promise<{ totalConsumed: number }> {
   const { data, error } = await supabase
@@ -130,7 +130,7 @@ export async function fetchCreditStats(): Promise<{ totalConsumed: number }> {
   return { totalConsumed };
 }
 
-/** Obtiene todos los perfiles para la tabla de usuarios del admin. */
+/** Obtiene todos los perfiles para la tabla de usuarios del panel de admin, ordenados por fecha de creación. */
 export async function fetchAllProfiles(): Promise<AdminProfile[]> {
   const { data, error } = await supabase
     .from("profiles")

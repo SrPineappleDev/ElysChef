@@ -1,14 +1,9 @@
-// Modelo de servicio de perfiles.
-// Contiene las funciones para leer y actualizar los datos del perfil del usuario
+// Servicio de perfiles.
+// Gestiona las operaciones de lectura y actualización de datos del perfil del usuario
 // en la tabla "profiles" de Supabase.
 
 import { supabase } from "@/integrations/supabase/client";
 import { rowToProfile, type Profile, type ProfileRow } from "@/entities/profile";
-
-/**
- * Model: Profile Service
- * Handles profile data operations
- */
 
 /**
  * Obtiene el perfil de un usuario por su ID.
@@ -51,7 +46,7 @@ export async function updatePlan(profileId: string, plan: "free" | "vip"): Promi
 }
 
 /**
- * Resta créditos al perfil del usuario de forma segura.
+ * Resta créditos al perfil del usuario de forma segura a nivel de base de datos.
  * Solo actualiza si el usuario tiene suficientes créditos (credits >= amount).
  * Lanza un error si no hay suficientes créditos o si la operación falla.
  */

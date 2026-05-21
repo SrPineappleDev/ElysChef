@@ -1,3 +1,7 @@
+// Entidad Recipe: mapea una fila de la tabla `recipes` al tipo de dominio Recipe.
+// Supabase devuelve campos nulos; el mapper aplica valores por defecto para que
+// los consumidores siempre reciban un Recipe completamente tipado sin nulos.
+
 import type { Tables } from "@/integrations/supabase/types";
 import type { Recipe } from "@/lib/types";
 

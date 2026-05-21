@@ -1,13 +1,8 @@
-// Modelo de servicio de autenticación.
+// Servicio de autenticación.
 // Contiene las funciones que interactúan directamente con Supabase Auth
 // para iniciar sesión, registrar usuarios, cerrar sesión y cambiar contraseña.
 
 import { supabase } from "@/integrations/supabase/client";
-
-/**
- * Model: Auth Service
- * Handles authentication and session operations
- */
 
 /**
  * Inicia sesión con email y contraseña.
@@ -34,7 +29,7 @@ export async function signUp(params: {
     email: params.email,
     password: params.password,
     options: {
-      // Datos adicionales del perfil que se guardarán en la tabla profiles
+      // Metadatos pasados al trigger handle_new_user; el plan es ignorado por el trigger (siempre asigna "free" por seguridad)
       data: {
         nombre: params.nombre,
         apellidos: params.apellidos,

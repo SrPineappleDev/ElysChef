@@ -1,6 +1,6 @@
 // Servicio de catálogos dinámicos (países, categorías y dietas).
 // Persiste en Supabase con soporte de soft delete (campo archived).
-// Los registros archivados no aparecen en los filtros pero siguen existiendo.
+// Los registros archivados no aparecen en los filtros pero siguen existiendo en la base de datos.
 
 import { supabase } from "@/integrations/supabase/client";
 import { COUNTRIES, CATEGORIES, DIETS } from "@/lib/types";
@@ -10,7 +10,7 @@ export type { CatalogCountry, CatalogCategory, CatalogDiet };
 
 // ─── Países ───────────────────────────────────────────────────────────────────
 
-/** Devuelve solo los países activos (para RecipeFilters y para el prompt de la IA). */
+/** Devuelve solo los países activos (para los filtros de recetas y para el prompt de la IA). */
 export async function fetchCountries(): Promise<CatalogCountry[]> {
   const { data, error } = await supabase
     .from("countries")
@@ -23,7 +23,7 @@ export async function fetchCountries(): Promise<CatalogCountry[]> {
   return data || [];
 }
 
-/** Devuelve todos los países (activos + archivados) para el panel de Admin. */
+/** Devuelve todos los países (activos y archivados) para el panel de administración. */
 export async function fetchAllCountries(): Promise<CatalogCountry[]> {
   const { data, error } = await supabase
     .from("countries")
@@ -50,7 +50,7 @@ export async function archiveCountry(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Restaura un país archivado. */
+/** Restaura un país archivado para que vuelva a aparecer en los filtros. */
 export async function restoreCountry(id: string): Promise<void> {
   const { error } = await supabase.from("countries").update({ archived: false }).eq("id", id);
   if (error) throw error;
@@ -71,7 +71,7 @@ export async function fetchCategories(): Promise<CatalogCategory[]> {
   return data || [];
 }
 
-/** Devuelve todas las categorías (activas + archivadas) para el Admin. */
+/** Devuelve todas las categorías (activas y archivadas) para el panel de administración. */
 export async function fetchAllCategories(): Promise<CatalogCategory[]> {
   const { data, error } = await supabase
     .from("categories")
@@ -89,7 +89,7 @@ async function seedCategories(): Promise<CatalogCategory[]> {
 
 export async function addCategory(label: string): Promise<void> {
   const trimmed = label.trim();
-  const value = trimmed.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
+  const value = trimmed.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "_");
   const { error } = await supabase.from("categories").insert({ value, label: trimmed });
   if (error) throw error;
 }
@@ -119,7 +119,7 @@ export async function fetchDiets(): Promise<CatalogDiet[]> {
   return data || [];
 }
 
-/** Devuelve todas las dietas (activas + archivadas) para el Admin. */
+/** Devuelve todas las dietas (activas y archivadas) para el panel de administración. */
 export async function fetchAllDiets(): Promise<CatalogDiet[]> {
   const { data, error } = await supabase
     .from("diets")
@@ -137,7 +137,7 @@ async function seedDiets(): Promise<CatalogDiet[]> {
 
 export async function addDiet(label: string): Promise<void> {
   const trimmed = label.trim();
-  const value = trimmed.toLowerCase().replace(/\p{Emoji}/gu, "").trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+  const value = trimmed.toLowerCase().replace(/\p{Emoji}/gu, "").trim().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
   const { error } = await supabase.from("diets").insert({ value, label: trimmed });
   if (error) throw error;
 }

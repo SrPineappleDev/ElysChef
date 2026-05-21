@@ -1,5 +1,5 @@
 // Controlador del panel de administración.
-// Gestiona KPIs y los catálogos de alergias, países, categorías y dietas
+// Gestiona los KPIs y los catálogos de alergias, países, categorías y dietas
 // con soporte de soft delete (archivar/restaurar).
 
 import { useState, useEffect } from "react";

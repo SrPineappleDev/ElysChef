@@ -14,11 +14,6 @@ import type { Allergy } from "@/models/allergy-service";
 import { traducirErrorAuth } from "@/lib/auth-error-translator";
 
 /**
- * Controller: Profile
- * Manages profile editing and plan changes
- */
-
-/**
  * Hook que expone el estado y los manejadores de la página de perfil.
  * Devuelve los datos del perfil, campos editables, estado de carga
  * y funciones para guardar cambios, cambiar plan y actualizar contraseña.
@@ -26,22 +21,21 @@ import { traducirErrorAuth } from "@/lib/auth-error-translator";
 export function useProfileController() {
   const { profile, refreshProfile } = useAuth();
 
-  // Estado editable del nombre y apellidos del usuario
   const [nombre, setNombre] = useState(profile?.nombre || "");
   const [apellidos, setApellidos] = useState(profile?.apellidos || "");
   const [saving, setSaving] = useState(false);
 
-  // Estado para el diálogo de confirmación de upgrade gratuito → VIP
+  // Diálogo de confirmación de upgrade gratuito → VIP
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
 
-  // Estado para el diálogo de confirmación de downgrade VIP → gratuito
+  // Diálogo de confirmación de downgrade VIP → gratuito
   const [downgradeDialogOpen, setDowngradeDialogOpen] = useState(false);
   const [excessFavoritesCount, setExcessFavoritesCount] = useState(0);
 
-  // Estado para el diálogo de confirmación de compra de créditos
+  // Diálogo de confirmación de compra de créditos
   const [creditPackage, setCreditPackage] = useState<{ amount: number; price: string } | null>(null);
 
-  // Estado de alergias del usuario VIP
+  // Alergias del usuario VIP
   const [catalogAllergies, setCatalogAllergies] = useState<Allergy[]>([]);
   const [userAllergyIds, setUserAllergyIds] = useState<Set<string>>(new Set());
 
@@ -71,8 +65,8 @@ export function useProfileController() {
     }
   };
 
-  // Estado del formulario de cambio de contraseña
-  const [pwOpen, setPwOpen] = useState(false);        // Controla si el formulario está visible
+  // Formulario de cambio de contraseña
+  const [pwOpen, setPwOpen] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -135,13 +129,13 @@ export function useProfileController() {
 
   /**
    * Confirma el upgrade a VIP tras aceptar el cargo mensual de 5 €.
+   * Sube los créditos hasta CREDITS.INITIAL_VIP si el usuario tiene menos; los conserva si tiene más.
    */
   const handleConfirmUpgrade = async () => {
     if (!profile) return;
     setUpgradeDialogOpen(false);
     try {
       await profileService.updatePlan(profile.id, "vip");
-      // Si el usuario tenía menos de CREDITS.INITIAL_VIP, sube hasta ahí; si tenía más, los conserva
       if (profile.credits < CREDITS.INITIAL_VIP) {
         await profileService.setCredits(profile.id, CREDITS.INITIAL_VIP);
       }
@@ -152,9 +146,7 @@ export function useProfileController() {
     }
   };
 
-  /**
-   * Cancela el upgrade a VIP y cierra el diálogo.
-   */
+  /** Cancela el upgrade a VIP y cierra el diálogo. */
   const handleCancelUpgrade = () => {
     setUpgradeDialogOpen(false);
   };
@@ -162,13 +154,13 @@ export function useProfileController() {
   /**
    * Confirma el downgrade a gratuito: elimina los favoritos que superen el límite de 10
    * (manteniendo los primeros 10 por fecha de creación) y luego cambia el plan.
+   * Los créditos se conservan tal cual al hacer downgrade.
    */
   const handleConfirmDowngrade = async () => {
     if (!profile) return;
     setDowngradeDialogOpen(false);
     try {
       await favoritesService.trimFavoritesToLimit(profile.id, 10);
-      // Los créditos se conservan tal cual al hacer downgrade
       await profileService.updatePlan(profile.id, "free");
       toast.success("Plan cambiado a Gratuito");
       await refreshProfile();
@@ -177,9 +169,7 @@ export function useProfileController() {
     }
   };
 
-  /**
-   * Cancela el downgrade y cierra el diálogo de confirmación.
-   */
+  /** Cancela el downgrade y cierra el diálogo de confirmación. */
   const handleCancelDowngrade = () => {
     setDowngradeDialogOpen(false);
     setExcessFavoritesCount(0);
@@ -219,16 +209,12 @@ export function useProfileController() {
     }
   };
 
-  /**
-   * Abre el diálogo de confirmación para comprar un paquete de créditos.
-   */
+  /** Abre el diálogo de confirmación para comprar un paquete de créditos. */
   const handleSelectCreditPackage = (amount: number, price: string) => {
     setCreditPackage({ amount, price });
   };
 
-  /**
-   * Confirma la compra del paquete de créditos seleccionado y suma al saldo actual.
-   */
+  /** Confirma la compra del paquete de créditos seleccionado y suma al saldo actual. */
   const handleConfirmAddCredits = async () => {
     if (!profile || !creditPackage) return;
     setCreditPackage(null);
@@ -241,16 +227,12 @@ export function useProfileController() {
     }
   };
 
-  /**
-   * Cancela la compra de créditos y cierra el diálogo.
-   */
+  /** Cancela la compra de créditos y cierra el diálogo. */
   const handleCancelAddCredits = () => {
     setCreditPackage(null);
   };
 
-  /**
-   * Cancela el cambio de contraseña y limpia todos los campos del formulario.
-   */
+  /** Cancela el cambio de contraseña y limpia todos los campos del formulario. */
   const handleCancelPwChange = () => {
     setPwOpen(false);
     setCurrentPassword("");

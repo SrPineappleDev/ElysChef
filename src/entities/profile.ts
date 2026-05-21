@@ -1,3 +1,6 @@
+// Entidad Profile: mapea una fila de la tabla `profiles` al tipo de dominio Profile.
+// El campo `role` no está en los tipos auto-generados de Supabase, por lo que se castea manualmente.
+
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
 export type ProfileRow = Tables<"profiles">;
@@ -21,6 +24,7 @@ export function rowToProfile(row: ProfileRow): Profile {
     email: row.email,
     plan: row.plan,
     credits: row.credits,
+    // `role` no está en los tipos generados; se castea con fallback a "user"
     role: (row.role as "user" | "admin") ?? "user",
   };
 }

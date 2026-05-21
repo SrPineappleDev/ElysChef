@@ -1,6 +1,6 @@
 // Cliente HTTP para las Edge Functions de Supabase.
-// Centraliza la configuración de URL, autenticación y manejo de errores
-// para que los servicios no contengan fetch() en línea.
+// Centraliza la construcción de la URL, las cabeceras de autenticación y el manejo de errores
+// para que los servicios no contengan llamadas fetch() en línea.
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -9,7 +9,7 @@ const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
 /**
  * Invoca una Edge Function mediante POST enviando el JWT de sesión del usuario.
- * Las Edge Functions usan ese JWT para verificar identidad y descontar créditos.
+ * Las Edge Functions usan ese JWT para verificar identidad y descontar créditos en el servidor.
  */
 export async function invokeFunction(name: string, body: unknown): Promise<any> {
   const session = (await supabase.auth.getSession()).data.session;
@@ -30,7 +30,7 @@ export async function invokeFunction(name: string, body: unknown): Promise<any> 
 
 /**
  * Llama a una Edge Function mediante GET con el token de sesión del usuario.
- * Usado para operaciones que requieren autenticación (ej: búsqueda de recetas).
+ * Usada para operaciones de lectura autenticadas (p. ej. búsqueda de recetas).
  */
 export async function fetchFunction(path: string, accessToken: string): Promise<any> {
   const res = await fetch(`${FUNCTIONS_URL}/${path}`, {

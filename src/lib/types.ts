@@ -1,7 +1,7 @@
-// Tipos e interfaces globales de la aplicación.
-// Define las estructuras de datos principales: ingrediente, receta, categorías y países disponibles.
+// Tipos globales y constantes estáticas de la aplicación.
+// Define las estructuras de datos principales: Recipe, Ingredient,
+// y las listas semilla de categorías, países y dietas.
 
-// Representa un ingrediente individual con su cantidad, unidad y calorías
 export interface Ingredient {
   ingredient_name: string;
   quantity: number | string;
@@ -9,7 +9,6 @@ export interface Ingredient {
   calories: number;
 }
 
-// Representa una receta completa con toda su información nutricional y de preparación
 export interface Recipe {
   id: string;
   title: string;
@@ -22,18 +21,16 @@ export interface Recipe {
   fat: string;
   ingredients: string[];
   steps: string[];
-  country?: string;       // País de origen de la receta (opcional)
-  category?: string;      // Categoría de la receta (opcional)
-  diet?: string;          // Tipo de dieta de la receta (opcional)
-  description?: string;   // Descripción breve de la receta (opcional)
-  calories_per_ingredient?: Record<string, number>; // Calorías desglosadas por ingrediente
-  imageQuery?: string;    // Término de búsqueda para generar la imagen con IA
+  country?: string;
+  category?: string;
+  diet?: string;
+  description?: string;
+  calories_per_ingredient?: Record<string, number>;
+  imageQuery?: string; // Término de búsqueda para obtener la imagen de la receta desde Pexels
 }
 
-// Tipo union con las categorías de receta disponibles
 export type RecipeCategory = "desayuno" | "almuerzo" | "cena" | "postre" | "snack";
 
-// Lista de categorías con su valor interno y etiqueta visible al usuario
 export const CATEGORIES: { value: RecipeCategory; label: string }[] = [
   { value: "desayuno", label: "Desayuno" },
   { value: "almuerzo", label: "Almuerzo" },
@@ -42,14 +39,13 @@ export const CATEGORIES: { value: RecipeCategory; label: string }[] = [
   { value: "snack", label: "Snack" },
 ];
 
-// Lista de países disponibles para filtrar recetas por origen
 export const COUNTRIES = [
   "México", "España", "Italia", "Japón", "China", "India",
   "Francia", "Tailandia", "Perú", "Argentina", "Colombia",
   "Estados Unidos", "Grecia", "Marruecos", "Corea del Sur",
 ];
 
-// Lista de dietas disponibles (usada como semilla del catálogo dinámico)
+// Valores semilla del catálogo de dietas — se usan para poblar la tabla en la primera carga
 export const DIETS: { value: string; label: string }[] = [
   { value: "vegetariano",  label: "🥦 Vegetariano" },
   { value: "vegano",       label: "🌱 Vegano" },

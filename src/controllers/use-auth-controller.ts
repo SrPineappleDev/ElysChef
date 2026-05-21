@@ -9,11 +9,6 @@ import * as authService from "@/models/auth-service";
 import { traducirErrorAuth } from "@/lib/auth-error-translator";
 
 /**
- * Controller: Auth
- * Manages login and registration logic
- */
-
-/**
  * Hook que expone el estado y los manejadores del formulario de autenticación.
  * Devuelve variables de estado para los campos de login y registro,
  * junto con las funciones handleLogin y handleRegister para procesar los formularios.
@@ -100,7 +95,7 @@ export function useAuthController() {
     loginEmail, setLoginEmail,
     loginPassword, setLoginPassword,
     loginLoading, handleLogin,
-    // Register
+    // Registro
     nombre, setNombre,
     apellidos, setApellidos,
     regEmail, setRegEmail,

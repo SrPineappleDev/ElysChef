@@ -1,12 +1,13 @@
 // Controlador de reconocimiento de ingredientes por imagen.
-// Gestiona la conversión de imagen a base64, el análisis con IA,
-// la deducción de créditos y la actualización de la lista de ingredientes.
+// Valida el saldo de créditos antes de llamar al servicio, convierte el archivo
+// a base64 y delega el análisis a la Edge Function de reconocimiento de IA.
+// Los créditos se descuentan en el servidor; este controlador solo refresca el perfil tras la operación.
 
 import { useState } from "react";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@/entities/profile";
-import { recognizeIngredientsFromImage, fileToBase64 } from "@/models/recipe-service";
+import { recognizeIngredientsFromImage, fileToBase64 } from "@/models/recipe-ai-service";
 import { CREDITS } from "@/lib/credit-config";
 
 interface UseIngredientRecognitionOptions {
@@ -36,7 +37,7 @@ export function useIngredientRecognition({
     setIsRecognizing(true);
     try {
       const { base64, mimeType } = await fileToBase64(file);
-      const detected = await recognizeIngredientsFromImage(base64, mimeType);
+      const detected = await recognizeIngredientsFromImage({ imageBase64: base64, mimeType });
 
       if (profile && user) {
         await refreshProfile();

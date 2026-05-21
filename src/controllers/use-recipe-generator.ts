@@ -7,12 +7,8 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import {
-  generateRecipesFromAI,
-  generateRecipeImage,
-  saveRecipe,
-  updateRecipeImage,
-} from "@/models/recipe-service";
+import { generateRecipesFromAI, generateRecipeImage } from "@/models/recipe-ai-service";
+import { saveRecipe, updateRecipeImage } from "@/models/recipe-service";
 import { fetchUserAllergies } from "@/models/allergy-service";
 import { CREDITS } from "@/lib/credit-config";
 import { fetchCountries, fetchCategories, fetchDiets } from "@/models/catalog-service";
@@ -91,7 +87,7 @@ export function useRecipeGenerator() {
         availableCategories: activeCategories.length > 0 ? activeCategories : undefined,
         availableDiets: activeDiets.length > 0 ? activeDiets : undefined,
       };
-      const result = await generateRecipesFromAI(ingredients, filters);
+      const result = await generateRecipesFromAI({ ingredients, ...filters });
 
       // Limita el número de recetas: VIP usa recipeCount elegido, free siempre 1
       const effectiveCount = profile?.plan === "vip" ? recipeCount : 1;
@@ -120,7 +116,7 @@ export function useRecipeGenerator() {
 
       setGenerationStep("Generando imágenes con IA...");
       const imagePromises = savedRecipes.map(async (r, idx) => {
-        const image = await generateRecipeImage(r.title, r.imageQuery);
+        const image = await generateRecipeImage({ title: r.title, imageQuery: r.imageQuery });
         return { idx, image };
       });
       const images = await Promise.all(imagePromises);

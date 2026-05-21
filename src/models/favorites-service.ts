@@ -1,5 +1,5 @@
-// Modelo de servicio de favoritos.
-// Contiene las funciones para leer, añadir y eliminar recetas favoritas
+// Servicio de favoritos.
+// Gestiona las operaciones de lectura, adición y eliminación de recetas favoritas
 // del usuario en la base de datos de Supabase.
 
 import { supabase } from "@/integrations/supabase/client";
@@ -7,13 +7,8 @@ import type { Recipe } from "@/lib/types";
 import { rowToRecipe, type RecipeRow } from "@/entities/recipe";
 
 /**
- * Model: Favorites Service
- * Handles favorites data operations
- */
-
-/**
  * Obtiene todas las recetas favoritas de un usuario.
- * Hace un join entre la tabla "favorites" y "recipes" para devolver
+ * Realiza un join entre las tablas "favorites" y "recipes" para devolver
  * los datos completos de cada receta guardada.
  * Devuelve un array de recetas (vacío si no hay favoritos).
  */
