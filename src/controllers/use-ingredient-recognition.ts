@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@/entities/profile";
 import { recognizeIngredientsFromImage, fileToBase64 } from "@/models/recipe-service";
-import { deductCredits } from "@/models/profile-service";
 import { CREDITS } from "@/lib/credit-config";
 
 interface UseIngredientRecognitionOptions {
@@ -40,7 +39,6 @@ export function useIngredientRecognition({
       const detected = await recognizeIngredientsFromImage(base64, mimeType);
 
       if (profile && user) {
-        await deductCredits(profile.id, CREDITS.COST_ANALYZE_IMAGE, profile.credits);
         await refreshProfile();
       }
 

@@ -13,7 +13,6 @@ import {
   saveRecipe,
   updateRecipeImage,
 } from "@/models/recipe-service";
-import { deductCredits } from "@/models/profile-service";
 import { fetchUserAllergies } from "@/models/allergy-service";
 import { CREDITS } from "@/lib/credit-config";
 import { fetchCountries, fetchCategories, fetchDiets } from "@/models/catalog-service";
@@ -114,7 +113,6 @@ export function useRecipeGenerator() {
       }
 
       if (profile && user) {
-        await deductCredits(profile.id, CREDITS.COST_GENERATE, profile.credits);
         await refreshProfile();
       }
 

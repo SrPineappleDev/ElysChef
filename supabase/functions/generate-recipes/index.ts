@@ -1,9 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { callGroq, corsHeaders, QuotaExhaustedError, ModelUnavailableError, QUOTA_ERROR_MSG, UNAVAILABLE_ERROR_MSG } from "../_shared/groq.ts";
+import { callGroq, QuotaExhaustedError, ModelUnavailableError, QUOTA_ERROR_MSG, UNAVAILABLE_ERROR_MSG } from "../_shared/groq.ts";
+import { getCorsHeaders, validateAndDeductCredits } from "../_shared/credits.ts";
 
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("Origin"));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const json = (data: unknown) =>
@@ -13,6 +15,9 @@ serve(async (req) => {
     });
 
   try {
+    const authErr = await validateAndDeductCredits(req.headers.get("Authorization"), 50);
+    if (authErr) return json({ error: authErr });
+
     const { ingredients, country, category, diet, allergies, availableCountries, availableCategories, availableDiets } = await req.json();
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");

@@ -2,19 +2,24 @@
 // Centraliza la configuración de URL, autenticación y manejo de errores
 // para que los servicios no contengan fetch() en línea.
 
+import { supabase } from "@/integrations/supabase/client";
+
 const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
 /**
- * Invoca una Edge Function mediante POST con la clave anónima.
- * Usado para operaciones de IA que no requieren sesión de usuario.
+ * Invoca una Edge Function mediante POST enviando el JWT de sesión del usuario.
+ * Las Edge Functions usan ese JWT para verificar identidad y descontar créditos.
  */
 export async function invokeFunction(name: string, body: unknown): Promise<any> {
+  const session = (await supabase.auth.getSession()).data.session;
+  const token = session?.access_token ?? ANON_KEY;
+
   const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${ANON_KEY}`,
+      "Authorization": `Bearer ${token}`,
       "apikey": ANON_KEY,
     },
     body: JSON.stringify(body),

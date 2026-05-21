@@ -3,11 +3,24 @@
 
 export const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-export const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = new Set([
+  "https://elys-chef.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:8080",
+  "http://localhost:8081",
+  "http://localhost:3000",
+]);
+
+export function getCorsHeaders(origin: string | null) {
+  const allowed = origin && ALLOWED_ORIGINS.has(origin)
+    ? origin
+    : "https://elys-chef.vercel.app";
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 export class QuotaExhaustedError extends Error {
   constructor() { super("DAILY_QUOTA"); }
