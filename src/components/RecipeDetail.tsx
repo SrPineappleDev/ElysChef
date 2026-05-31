@@ -36,8 +36,8 @@ const RecipeDetail = ({ recipe, onBack, onToggleFavorite, isFavorite, onDownload
         <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover" />
         {/* Gradiente oscuro para mejorar la legibilidad del texto sobre la imagen */}
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
-        <div className="absolute bottom-6 left-6 right-6">
-          <h1 className="font-display font-bold text-3xl text-primary-foreground mb-3">{recipe.title}</h1>
+        <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
+          <h1 className="font-display font-bold text-xl sm:text-3xl text-primary-foreground mb-2 sm:mb-3 leading-tight">{recipe.title}</h1>
           {/* Badges con calorías, tiempo, porciones, país y categoría */}
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className="bg-calorie text-calorie-foreground font-display">
@@ -64,15 +64,15 @@ const RecipeDetail = ({ recipe, onBack, onToggleFavorite, isFavorite, onDownload
       </div>
 
       {/* Cuadrícula con los 4 valores nutricionales principales */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Calorías", value: `${recipe.calories}`, unit: "kcal", className: "bg-calorie/10 text-calorie" },
+          { label: "Calorías", value: `${recipe.calories}`, unit: " kcal", className: "bg-calorie/10 text-calorie" },
           { label: "Proteínas", value: recipe.protein, unit: "", className: "bg-success/10 text-success" },
-          { label: "Carbohidratos", value: recipe.carbs, unit: "", className: "bg-accent/10 text-accent" },
+          { label: "Carbos", value: recipe.carbs, unit: "", className: "bg-accent/10 text-accent" },
           { label: "Grasas", value: recipe.fat, unit: "", className: "bg-warm text-warm-foreground" },
         ].map((n) => (
-          <div key={n.label} className={`rounded-xl p-4 text-center ${n.className}`}>
-            <p className="font-display font-bold text-lg">{n.value}{n.unit}</p>
+          <div key={n.label} className={`rounded-xl p-3 sm:p-4 text-center ${n.className}`}>
+            <p className="font-display font-bold text-base sm:text-lg leading-tight">{n.value}{n.unit}</p>
             <p className="text-xs mt-1 opacity-80">{n.label}</p>
           </div>
         ))}

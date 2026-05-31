@@ -47,8 +47,10 @@ const App = () => (
         <BrowserRouter>
           {/* Proveedor de autenticación: expone sesión, usuario y perfil a toda la app */}
           <AuthProvider>
-            {/* Barra de navegación visible en todas las páginas */}
+            {/* Barra de navegación: sidebar en desktop, top bar en móvil */}
             <Navbar />
+            {/* En desktop se compensa el ancho del sidebar (w-60 = 240px) */}
+            <div className="lg:pl-60">
             {/* Suspense muestra el spinner mientras se descarga una página con lazy loading */}
             <Suspense fallback={<PageLoader />}>
               <Routes>
@@ -65,6 +67,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
+            </div>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

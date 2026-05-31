@@ -71,7 +71,7 @@ const RecipeCard = ({ recipe, onToggleFavorite, isFavorite }: RecipeCardProps) =
       {/* Sección de información textual de la receta */}
       <div className="p-5 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-display font-bold text-lg text-foreground leading-tight">
+          <h3 className="font-display font-bold text-base sm:text-lg text-foreground leading-tight min-w-0">
             {recipe.title}
           </h3>
           {/* Badge de categoría (desayuno, almuerzo, cena, etc.) */}
