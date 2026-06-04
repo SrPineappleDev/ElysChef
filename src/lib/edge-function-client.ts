@@ -39,6 +39,9 @@ export async function fetchFunction(path: string, accessToken: string): Promise<
       "apikey": ANON_KEY,
     },
   });
-  if (!res.ok) throw new Error("Error en la petición a la función");
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`Error ${res.status}: ${body.error ?? "Error en la petición"}`);
+  }
   return res.json();
 }

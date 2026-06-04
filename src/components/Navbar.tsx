@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ChefHat, Heart, Camera, Crown, User, ShieldCheck, Home } from "lucide-react";
+import { ChefHat, Heart, Camera, Crown, User, ShieldCheck, Home, Compass } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
@@ -45,6 +45,19 @@ const Navbar = () => {
 
             {session ? (
               <div className="flex items-center gap-0.5 ml-1">
+                {(profile?.plan === "vip" || profile?.role === "admin") && (
+                  <Link
+                    to="/explore"
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive("/explore")
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Compass className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline">Explorar</span>
+                  </Link>
+                )}
                 {profile?.role === "admin" && (
                   <Link
                     to="/admin"
@@ -111,6 +124,20 @@ const Navbar = () => {
               {label}
             </Link>
           ))}
+
+          {(profile?.plan === "vip" || profile?.role === "admin") && (
+            <Link
+              to="/explore"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive("/explore")
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              <Compass className="w-4 h-4 shrink-0" />
+              Explorar
+            </Link>
+          )}
 
           {profile?.role === "admin" && (
             <Link

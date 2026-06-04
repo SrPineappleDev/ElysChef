@@ -13,6 +13,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import VipRoute from "./components/VipRoute";
 
 // Carga diferida (lazy loading) de páginas para reducir el bundle inicial
 const Index = lazy(() => import("./pages/Index"));
@@ -20,6 +21,7 @@ const Analyze = lazy(() => import("./pages/Analyze"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Explore = lazy(() => import("./pages/Explore"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -63,6 +65,7 @@ const App = () => (
                 <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                <Route path="/explore" element={<VipRoute><Explore /></VipRoute>} />
                 {/* Ruta comodín para páginas no encontradas */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

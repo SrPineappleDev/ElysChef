@@ -3,17 +3,18 @@
 // categoría, tiempo, porciones y macronutrientes. Incluye botón de favorito.
 
 import { memo } from "react";
-import { Clock, Flame, Users, Heart, MapPin, Tag } from "lucide-react";
+import { Clock, Flame, Users, Heart, MapPin, Tag, Trash2, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Recipe } from "@/lib/types";
 
-// Props del componente de tarjeta
 interface RecipeCardProps {
   recipe: Recipe;
-  onToggleFavorite?: (id: string) => void; // Callback al pulsar el botón de favorito
-  isFavorite?: boolean;                    // True si la receta está en favoritos
+  onToggleFavorite?: (id: string) => void;
+  isFavorite?: boolean;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 }
 
 /**
@@ -21,11 +22,16 @@ interface RecipeCardProps {
  * Muestra imagen (o spinner si aún se está cargando), badges de calorías y país,
  * título, categoría, tiempo, porciones y los tres macronutrientes principales.
  */
-const RecipeCard = ({ recipe, onToggleFavorite, isFavorite }: RecipeCardProps) => {
+const RecipeCard = ({ recipe, onToggleFavorite, isFavorite, onDelete, isDeleting }: RecipeCardProps) => {
   return (
     <Card className="overflow-hidden bg-card border-border animate-fade-in group">
-      {/* Sección de imagen con badges superpuestos */}
       <div className="relative aspect-video overflow-hidden bg-muted">
+        {isDeleting && (
+          <div className="absolute inset-0 z-10 bg-background/75 flex flex-col items-center justify-center gap-2 pointer-events-none">
+            <Loader2 className="w-6 h-6 animate-spin text-destructive" />
+            <p className="text-xs font-semibold text-foreground">Eliminando, espere...</p>
+          </div>
+        )}
         {recipe.image ? (
           // Imagen de la receta con efecto zoom al pasar el ratón
           <img
@@ -40,15 +46,23 @@ const RecipeCard = ({ recipe, onToggleFavorite, isFavorite }: RecipeCardProps) =
           </div>
         )}
 
-        {/* Botón de favorito en la esquina superior derecha */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex gap-1">
+          {onDelete && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="w-9 h-9 rounded-full glass-card hover:bg-destructive/20"
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          )}
           <Button
             size="icon"
             variant="ghost"
             onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(recipe.id); }}
             className="w-9 h-9 rounded-full glass-card hover:bg-destructive/20"
           >
-            {/* El corazón se rellena cuando la receta es favorita */}
             <Heart className={`w-4 h-4 ${isFavorite ? "fill-destructive text-destructive" : "text-foreground"}`} />
           </Button>
         </div>

@@ -4,7 +4,7 @@
 // Las operaciones de generación con IA están en recipe-ai-service.ts.
 
 import { supabase } from "@/integrations/supabase/client";
-import { fetchFunction } from "@/lib/edge-function-client";
+import { fetchFunction, invokeFunction } from "@/lib/edge-function-client";
 import type { Recipe } from "@/lib/types";
 
 /**
@@ -76,16 +76,20 @@ export async function updateRecipeImage(recipeId: string, image: string): Promis
  * autenticada con el token de sesión del usuario.
  */
 export async function searchRecipes(params: {
+  title?: string;
   country?: string;
   category?: string;
+  diet?: string;
   min_calories?: number;
   max_calories?: number;
   page?: number;
   limit?: number;
 }) {
   const query = new URLSearchParams();
+  if (params.title) query.set("title", params.title);
   if (params.country) query.set("country", params.country);
   if (params.category) query.set("category", params.category);
+  if (params.diet) query.set("diet", params.diet);
   if (params.min_calories) query.set("min_calories", String(params.min_calories));
   if (params.max_calories) query.set("max_calories", String(params.max_calories));
   if (params.page) query.set("page", String(params.page));
@@ -93,4 +97,8 @@ export async function searchRecipes(params: {
 
   const session = (await supabase.auth.getSession()).data.session;
   return fetchFunction(`search-recipes?${query.toString()}`, session?.access_token ?? "");
+}
+
+export async function deleteRecipeAsAdmin(recipeId: string): Promise<void> {
+  await invokeFunction("delete-recipe", { recipe_id: recipeId });
 }
